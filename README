@@ -14,6 +14,6 @@ Usage:
 		jdomain www.baidu.com;
 	}
 
-See http://wiki.nginx.org/HttpUpstreamJdomain for details.
+See http://wiki.nginx.org/HttpUpstreamJdomainModule for details.
 
 Questions/patches to wdaike, unixant@gmail.com
