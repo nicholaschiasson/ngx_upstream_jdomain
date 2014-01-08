@@ -1,12 +1,19 @@
 ngx_upstream_jdomain
 ====================
 
-An asynchronous DNS dynamic update module for nginx upstream
+An asynchronous domain name resolve module for nginx upstream
 
 Installation:
 
+	./configure --add-module=/path/to/this/directory
+	make
+	make install
+
 Usage:
+	upstream backend {
+		jdomain www.baidu.com;
+	}
 
-See xxxx for details.
+See http://wiki.nginx.org/HttpUpstreamJdomain for details.
 
-Questions/patches to wdaike, wudaike@baidu.com.
+Questions/patches to wdaike, unixant@gmail.com

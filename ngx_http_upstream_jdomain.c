@@ -310,12 +310,6 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			continue;
 		}
 
-		if (ngx_strncmp(value[i].data, "retry_on", 8) == 0) {
-			retry = 1;
-
-			continue;
-		}
-
 		if (ngx_strncmp(value[i].data, "retry_off", 9) == 0) {
 			retry = 0;
 
