@@ -228,9 +228,6 @@ assign:
 static void
 ngx_http_upstream_jdomain_free_peer(ngx_peer_connection_t *pc, void *data,ngx_uint_t state)
 {
-	ngx_http_upstream_jdomain_peer_data_t  *urpd;
-	urpd = data;
-	
 	if(pc->tries > 0)
 		pc->tries--;
 }
@@ -245,7 +242,6 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_str_t		*value, domain, s;
 	ngx_int_t		default_port, max_ips;
 	ngx_uint_t		retry;
-	struct sockaddr_in	*taddr;
 	ngx_sockaddr_t		*paddr;
 	ngx_url_t		u;
 	ngx_uint_t		i;
@@ -353,16 +349,10 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 	urcf->resolved_num = 0;
 	for(i = 0; i < u.naddrs ;i++){
-		taddr = (struct sockaddr_in*)(u.addrs[i].sockaddr);
-
 		paddr = &urcf->resolved_addrs[urcf->resolved_num];
 		paddr->sockaddr = *(struct sockaddr*)u.addrs[i].sockaddr;
 		paddr->socklen = u.addrs[i].socklen; 
 
-		//ngx_cpystrn(paddr->ipstr,u.addrs[i].name.data,u.addrs[i].name.len+1);
-
-		//paddr->name.data = paddr->ipstr;
-		//paddr->name.len = ngx_strlen(paddr->ipstr);
 		paddr->name = u.addrs[i].name;
 
 		urcf->resolved_num++;
