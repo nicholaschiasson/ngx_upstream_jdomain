@@ -6,19 +6,22 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+#include <nginx.h>
 
 #define NGX_JDOMAIN_STATS_DONE 0
 #define NGX_JDOMAIN_STATS_WAIT 1
 
 typedef struct {
 	struct sockaddr	sockaddr;
+	struct sockaddr_in6	padding;
+
 	socklen_t	socklen;
 
 	ngx_str_t	name;
 	u_char		ipstr[NGX_SOCKADDR_STRLEN + 1];
 
 #if (NGX_HTTP_SSL)
-    ngx_ssl_session_t              *ssl_session;   /* local to a process */
+	ngx_ssl_session_t	*ssl_session;   /* local to a process */
 #endif
 } ngx_http_upstream_jdomain_peer_t;
 
@@ -207,7 +210,9 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 		"upstream_jdomain: resolve_start ok"); 
 
 	ctx->name = urcf->resolved_domain;
+#if (nginx_version) < 1005008
 	ctx->type = NGX_RESOLVE_A;
+#endif
 	ctx->handler = ngx_http_upstream_jdomain_handler;
 	ctx->data = urcf;
 	ctx->timeout = urpd->clcf->resolver_timeout;
@@ -257,6 +262,10 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_http_upstream_srv_conf_t  *uscf;
 	ngx_http_upstream_jdomain_srv_conf_t *urcf;
 
+#if (nginx_version) >= 1007003
+	ngx_http_upstream_server_t	*us;
+#endif
+
 	time_t			interval;
 	ngx_str_t		*value, domain, s;
 	ngx_int_t		default_port, max_ips;
@@ -282,6 +291,14 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			return NGX_CONF_ERROR;
 		}
 	}
+
+#if (nginx_version) >= 1007003
+	us = ngx_array_push(uscf->servers);
+	if (us == NULL) {
+		return NGX_CONF_ERROR;
+	}
+	ngx_memzero(us, sizeof(ngx_http_upstream_server_t));
+#endif
 	
 	urcf = ngx_http_conf_upstream_srv_conf(uscf,
 					ngx_http_upstream_jdomain_module);
@@ -408,11 +425,10 @@ ngx_http_upstream_jdomain_create_conf(ngx_conf_t *cf)
 static void
 ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 {
-	struct sockaddr_in	taddr;
+	struct sockaddr		*addr;
 	ngx_uint_t		i;
 	ngx_resolver_t		*r;
 	ngx_http_upstream_jdomain_peer_t		*peer;
-	u_char			*p;
 
 	ngx_http_upstream_jdomain_srv_conf_t *urcf;
 	
@@ -434,22 +450,40 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 	}
 
 	urcf->resolved_num = 0;
+
 	for (i = 0; i < ctx->naddrs; i++) {
-		taddr.sin_family = AF_INET;
-		taddr.sin_addr.s_addr = ctx->addrs[i];
-		taddr.sin_port = htons(urcf->default_port);
 
 		peer = &urcf->peers[urcf->resolved_num];
-		peer->sockaddr = *(struct sockaddr*)&taddr;
+		addr = &peer->sockaddr;
+
+#if (nginx_version) < 1005008
 		peer->socklen = sizeof(struct sockaddr);
 
-		p = ngx_snprintf(peer->ipstr, NGX_SOCKADDR_STRLEN,
-				"%s:%d",
-				inet_ntoa(taddr.sin_addr), urcf->default_port);
+		((struct sockaddr_in*)addr)->sin_family = AF_INET;
+		((struct sockaddr_in*)addr)->sin_addr.s_addr = ctx->addrs[i];
+		((struct sockaddr_in*)addr)->sin_port = htons(urcf->default_port);
+#else
+		peer->socklen = ctx->addrs[i].socklen;
 
-		*p = '\0';
+		ngx_memcpy(addr, ctx->addrs[i].sockaddr, peer->socklen);
+
+		switch (addr->sa_family) {
+		case AF_INET6:
+			((struct sockaddr_in6*)addr)->sin6_port = htons(urcf->default_port);
+			break;
+		default:
+			((struct sockaddr_in*)addr)->sin_port = htons(urcf->default_port);
+		}
+
+#endif
 		peer->name.data = peer->ipstr;
-		peer->name.len = ngx_strlen(peer->ipstr);
+		peer->name.len = 
+#if (nginx_version) <= 1005002
+			ngx_sock_ntop(addr, peer->ipstr, NGX_SOCKADDR_STRLEN, 1);
+#else
+			ngx_sock_ntop(addr, peer->socklen, peer->ipstr, NGX_SOCKADDR_STRLEN, 1);
+#endif
+
 
 		urcf->resolved_num++;
 
@@ -468,61 +502,61 @@ end:
 
 ngx_int_t
 ngx_http_upstream_set_jdomain_peer_session(ngx_peer_connection_t *pc,
-    void *data)
+	void *data)
 {
-    ngx_http_upstream_jdomain_peer_data_t  *urpd = data;
+	ngx_http_upstream_jdomain_peer_data_t  *urpd = data;
 
-    ngx_int_t                     rc;
-    ngx_ssl_session_t            *ssl_session;
-    ngx_http_upstream_jdomain_peer_t  *peer;
+	ngx_int_t                     rc;
+	ngx_ssl_session_t            *ssl_session;
+	ngx_http_upstream_jdomain_peer_t  *peer;
 
-    peer = &urpd->conf->peers[urpd->current];
+	peer = &urpd->conf->peers[urpd->current];
 
-    ssl_session = peer->ssl_session;
+	ssl_session = peer->ssl_session;
 
-    rc = ngx_ssl_set_session(pc->connection, ssl_session);
+	rc = ngx_ssl_set_session(pc->connection, ssl_session);
 
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-                   "set session: %p:%d",
-                   ssl_session, ssl_session ? ssl_session->references : 0);
+	ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+			"set session: %p:%d",
+			ssl_session, ssl_session ? ssl_session->references : 0);
 
-    return rc;
+	return rc;
 }
 
 
 void
 ngx_http_upstream_save_jdomain_peer_session(ngx_peer_connection_t *pc,
-    void *data)
+	void *data)
 {
-    ngx_http_upstream_jdomain_peer_data_t  *urpd = data;
+	ngx_http_upstream_jdomain_peer_data_t  *urpd = data;
 
-    ngx_ssl_session_t            *old_ssl_session, *ssl_session;
-    ngx_http_upstream_jdomain_peer_t  *peer;
+	ngx_ssl_session_t            *old_ssl_session, *ssl_session;
+	ngx_http_upstream_jdomain_peer_t  *peer;
 
-    ssl_session = ngx_ssl_get_session(pc->connection);
+	ssl_session = ngx_ssl_get_session(pc->connection);
 
-    if (ssl_session == NULL) {
-        return;
-    }
+	if (ssl_session == NULL) {
+		return;
+	}
 
-    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-                   "save session: %p:%d", ssl_session, ssl_session->references);
+	ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+			"save session: %p:%d", ssl_session, ssl_session->references);
 
-    peer = &urpd->conf->peers[urpd->current];
+	peer = &urpd->conf->peers[urpd->current];
 
-    old_ssl_session = peer->ssl_session;
-    peer->ssl_session = ssl_session;
-
-
-    if (old_ssl_session) {
-
-        ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-                       "old session: %p:%d",
-                       old_ssl_session, old_ssl_session->references);
+	old_ssl_session = peer->ssl_session;
+	peer->ssl_session = ssl_session;
 
 
-        ngx_ssl_free_session(old_ssl_session);
-    }
+	if (old_ssl_session) {
+
+		ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+				"old session: %p:%d",
+				old_ssl_session, old_ssl_session->references);
+
+
+		ngx_ssl_free_session(old_ssl_session);
+	}
 }
 
 #endif
