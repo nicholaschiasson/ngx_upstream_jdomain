@@ -181,7 +181,7 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 	pc->connection = NULL;
 
 	if(urcf->resolved_stats == NGX_JDOMAIN_STATS_WAIT){
-		ngx_log_debug(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+		ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
 			"upstream_jdomain: resolving"); 
 		goto assign;
 	}
@@ -190,12 +190,12 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 		goto assign;
 	}
 
-	ngx_log_debug(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
 		"upstream_jdomain: update from DNS cache"); 
 
 	ctx = ngx_resolve_start(urpd->clcf->resolver, NULL);
 	if(ctx == NULL) {
-		ngx_log_debug(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+		ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
 			"upstream_jdomain: resolve_start fail"); 
 		goto assign;
 	}
@@ -206,7 +206,7 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 		goto assign;
 	}
 
-	ngx_log_debug(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
 		"upstream_jdomain: resolve_start ok"); 
 
 	ctx->name = urcf->resolved_domain;
@@ -241,7 +241,7 @@ assign:
 	pc->socklen = peer->socklen;
 	pc->name = &peer->name;
 
-	ngx_log_debug(NGX_LOG_DEBUG_HTTP, pc->log, 0,
+	ngx_log_debug2(NGX_LOG_DEBUG_HTTP, pc->log, 0,
 		"upstream_jdomain: upstream to DNS peer (%s:%ud)",
 		inet_ntoa(((struct sockaddr_in*)(pc->sockaddr))->sin_addr),
 		ntohs((unsigned short)((struct sockaddr_in*)(pc->sockaddr))->sin_port));
@@ -372,7 +372,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 	ngx_memzero(&u, sizeof(ngx_url_t));
 	u.url = value[1];
-	u.default_port = urcf->default_port;
+	u.default_port = (in_port_t) urcf->default_port;
 
 	if (ngx_parse_url(cf->pool, &u) != NGX_OK) {
 		if (u.err) {
@@ -469,10 +469,10 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 
 		switch (addr->sa_family) {
 		case AF_INET6:
-			((struct sockaddr_in6*)addr)->sin6_port = htons(urcf->default_port);
+			((struct sockaddr_in6*)addr)->sin6_port = htons((u_short) urcf->default_port);
 			break;
 		default:
-			((struct sockaddr_in*)addr)->sin_port = htons(urcf->default_port);
+			((struct sockaddr_in*)addr)->sin_port = htons((u_short) urcf->default_port);
 		}
 
 #endif
