@@ -10,6 +10,7 @@ Installation:
 	make install
 
 Usage:
+
 	upstream backend {
 		jdomain www.baidu.com;
 	}
@@ -19,13 +20,13 @@ See http://wiki.nginx.org/HttpUpstreamJdomainModule for details.
 Author
 ======
 
-wdaike<wdaike@163.com>, Baidu Inc.
+wdaike <wdaike@163.com>, Baidu Inc.
 
 Copyright & License
 ===================
 
 This module is licenced under the BSD License.
-Copyright (C) 2014-2014, by wdaike<wdaike@163.com>, Baidu Inc.
+Copyright (C) 2014-2014, by wdaike <wdaike@163.com>, Baidu Inc.
 
 All rights reserved.
 
