@@ -11,11 +11,18 @@ Installation:
 
 Usage:
 
-	upstream backend {
-		jdomain www.baidu.com; #port=80
-        #jdomain www.baidu.com port=8080; #port=8080
+	upstream backend {                                                                              
+		jdomain www.baidu.com; #port=80                                                             
+		#jdomain www.baidu.com port=8080; #port=8080
+	}                                                                                               
+                                                                                                    
+Jdomain: 
 
-	}
+	* Syntax: jdomain <domain-name> [port=80] [max_ips=20] [retry_off]                              
+	* Context:    upstream                                                                          
+	* port:       Backend’s listening port.                                                         
+	* max_ips:    IP buffer size.                                                                   
+	* retry_off:  Do not retry if one IP fails. 
 
 Jdomain:
     * Syntax: jdomain <domain-name> [port=80] [max_ips=20] [retry_off]
