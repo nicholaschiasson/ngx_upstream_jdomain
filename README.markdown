@@ -20,7 +20,7 @@ Jdomain:
 
 	* Syntax: jdomain <domain-name> [port=80] [max_ips=20] [retry_off]                              
 	* Context:    upstream                                                                          
-	* port:       Backendâ€™s listening port.                                                         
+	* port:       Backend's listening port.                                                         
 	* max_ips:    IP buffer size.                                                                   
 	* retry_off:  Do not retry if one IP fails. 
 
