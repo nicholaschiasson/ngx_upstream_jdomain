@@ -20,16 +20,9 @@ Jdomain:
 
 	* Syntax: jdomain <domain-name> [port=80] [max_ips=20] [retry_off]                              
 	* Context:    upstream                                                                          
-	* port:       Backend’s listening port.                                                         
+	* port:       Backendâ€™s listening port.                                                         
 	* max_ips:    IP buffer size.                                                                   
 	* retry_off:  Do not retry if one IP fails. 
-
-Jdomain:
-    * Syntax: jdomain <domain-name> [port=80] [max_ips=20] [retry_off]
-    * Context:    upstream
-    * port:       Backend��s listening port.
-    * max_ips:    IP buffer size.
-    * retry_off:  Do not retry if one IP fails.
 
 See http://wiki.nginx.org/HttpUpstreamJdomainModule for details.
 
