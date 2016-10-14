@@ -8,8 +8,8 @@
 #include <ngx_http.h>
 #include <nginx.h>
 
-#define NGX_JDOMAIN_STATS_DONE 0
-#define NGX_JDOMAIN_STATS_WAIT 1
+#define NGX_JDOMAIN_STATUS_DONE 0
+#define NGX_JDOMAIN_STATUS_WAIT 1
 
 typedef struct {
 	struct sockaddr	sockaddr;
@@ -32,7 +32,7 @@ typedef struct {
 	ngx_uint_t		resolved_max_ips;
 	ngx_uint_t		resolved_num;
 	ngx_str_t		resolved_domain;
-	ngx_int_t		resolved_stats;
+	ngx_int_t		resolved_status;
 	ngx_uint_t		resolved_index;
 	time_t 			resolved_access;
 	time_t			resolved_interval;
@@ -125,7 +125,7 @@ ngx_http_upstream_jdomain_init(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 	us->peer.init = ngx_http_upstream_jdomain_init_peer;
 
 	urcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
-	urcf->resolved_stats = NGX_JDOMAIN_STATS_DONE;
+	urcf->resolved_status = NGX_JDOMAIN_STATUS_DONE;
 
 	return NGX_OK;
 }
@@ -180,7 +180,7 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 	pc->cached = 0;
 	pc->connection = NULL;
 
-	if(urcf->resolved_stats == NGX_JDOMAIN_STATS_WAIT){
+	if(urcf->resolved_status == NGX_JDOMAIN_STATUS_WAIT){
 		ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
 			"upstream_jdomain: resolving"); 
 		goto assign;
@@ -217,7 +217,7 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 	ctx->data = urcf;
 	ctx->timeout = urpd->clcf->resolver_timeout;
 
-	urcf->resolved_stats = NGX_JDOMAIN_STATS_WAIT;
+	urcf->resolved_status = NGX_JDOMAIN_STATUS_WAIT;
 	if(ngx_resolve_name(ctx) != NGX_OK) {
 		ngx_log_error(NGX_LOG_ALERT, pc->log, 0,
 			"upstream_jdomain: resolve name \"%V\" fail", &ctx->name);
@@ -495,7 +495,7 @@ end:
 	ngx_resolve_name_done(ctx);
 
 	urcf->resolved_access = ngx_time();
-	urcf->resolved_stats = NGX_JDOMAIN_STATS_DONE;
+	urcf->resolved_status = NGX_JDOMAIN_STATUS_DONE;
 }
 
 #if (NGX_HTTP_SSL)
