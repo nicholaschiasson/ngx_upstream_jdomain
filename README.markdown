@@ -14,7 +14,9 @@ Usage:
 	upstream backend {                                                                              
 		jdomain www.baidu.com; #port=80                                                             
 		#jdomain www.baidu.com port=8080; #port=8080
-	}                                                                                               
+	}
+	
+	resolver 8.8.8.8; #Your Local DNS Server
                                                                                                     
 Jdomain: 
 
