@@ -11,21 +11,26 @@ Installation:
 
 Usage:
 
-	upstream backend {                                                                              
-		jdomain www.baidu.com; #port=80                                                             
+	upstream backend {
+		jdomain www.baidu.com; #port=80
 		#jdomain www.baidu.com port=8080; #port=8080
+		#jdomain www.baidu.com fallback=192.168.0.127; #port=80 #fallback=192.168.0.127
+		#jdomain www.baidu.com fallback=192.168.0.127:8081; #port=80 #fallback=192.168.0.127:8081
+		#jdomain www.baidu.com port=8080 fallback=192.168.0.127; #port=8080 #fallback=192.168.0.127:8080
+		#jdomain www.baidu.com port=8080 fallback=192.168.0.127:8081; #port=8080 #fallback=192.168.0.127:8081
 	}
-	
-	resolver 8.8.8.8; #Your Local DNS Server
-                                                                                                    
-Jdomain: 
 
-	* Syntax: jdomain <domain-name> [port=80] [max_ips=20] [interval=1] [retry_off]
-	* Context:    upstream                                                                          
-	* port:       Backend's listening port.                                                         
+	resolver 8.8.8.8; #Your Local DNS Server
+
+Jdomain:
+
+	* Syntax: jdomain <domain-name> [port=80] [max_ips=20] [interval=1] [retry_off] [fallback=]
+	* Context:    upstream
+	* port:       Backend's listening port.
 	* max_ips:    IP buffer size.
 	* interval:   How many seconds to resolve domain name.
-	* retry_off:  Do not retry if one IP fails. 
+	* retry_off:  Do not retry if one IP fails.
+	* fallback:   Optional IP and port to use if <domain-name> resolves no IPs.
 
 See https://www.nginx.com/resources/wiki/modules/domain_resolve/ for details.
 

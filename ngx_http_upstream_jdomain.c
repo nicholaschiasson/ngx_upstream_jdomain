@@ -32,6 +32,8 @@ typedef struct {
 	ngx_uint_t		resolved_max_ips;
 	ngx_uint_t		resolved_num;
 	ngx_str_t		resolved_domain;
+	ngx_addr_t		fallback_addr;
+	in_port_t		fallback_port;
 	ngx_int_t		resolved_status;
 	ngx_uint_t		resolved_index;
 	time_t 			resolved_access;
@@ -43,7 +45,7 @@ typedef struct {
 typedef struct {
 	ngx_http_upstream_jdomain_srv_conf_t	*conf;
 	ngx_http_core_loc_conf_t 		*clcf;
-	
+
 	ngx_int_t			current;
 
 } ngx_http_upstream_jdomain_peer_data_t;
@@ -61,7 +63,7 @@ static char *ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd,
 
 static void * ngx_http_upstream_jdomain_create_conf(ngx_conf_t *cf);
 
-static ngx_int_t ngx_http_upstream_jdomain_init(ngx_conf_t *cf, 
+static ngx_int_t ngx_http_upstream_jdomain_init(ngx_conf_t *cf,
 	ngx_http_upstream_srv_conf_t *us);
 
 static ngx_int_t ngx_http_upstream_jdomain_init_peer(ngx_http_request_t *r,
@@ -139,16 +141,16 @@ ngx_http_upstream_jdomain_init_peer(ngx_http_request_t *r,
 
 	urcf = ngx_http_conf_upstream_srv_conf(us,
 					ngx_http_upstream_jdomain_module);
-	
+
 	urpd = ngx_pcalloc(r->pool, sizeof(ngx_http_upstream_jdomain_peer_data_t));
 	if(urpd == NULL) {
 		return NGX_ERROR;
 	}
-	
+
 	urpd->conf = urcf;
 	urpd->clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 	urpd->current = -1;
-	
+
 	r->upstream->peer.data = urpd;
 	r->upstream->peer.free = ngx_http_upstream_jdomain_free_peer;
 	r->upstream->peer.get = ngx_http_upstream_jdomain_get_peer;
@@ -176,13 +178,13 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 	ngx_http_upstream_jdomain_srv_conf_t	*urcf = urpd->conf;
 	ngx_resolver_ctx_t			*ctx;
 	ngx_http_upstream_jdomain_peer_t				*peer;
- 
+
 	pc->cached = 0;
 	pc->connection = NULL;
 
 	if(urcf->resolved_status == NGX_JDOMAIN_STATUS_WAIT){
 		ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-			"upstream_jdomain: resolving"); 
+			"upstream_jdomain: resolving");
 		goto assign;
 	}
 
@@ -191,23 +193,23 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 	}
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-		"upstream_jdomain: update from DNS cache"); 
+		"upstream_jdomain: update from DNS cache");
 
 	ctx = ngx_resolve_start(urpd->clcf->resolver, NULL);
 	if(ctx == NULL) {
 		ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-			"upstream_jdomain: resolve_start fail"); 
+			"upstream_jdomain: resolve_start fail");
 		goto assign;
 	}
 
 	if(ctx == NGX_NO_RESOLVER) {
 		ngx_log_error(NGX_LOG_ALERT, pc->log, 0,
-			"upstream_jdomain: no resolver"); 
+			"upstream_jdomain: no resolver");
 		goto assign;
 	}
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-		"upstream_jdomain: resolve_start ok"); 
+		"upstream_jdomain: resolve_start ok");
 
 	ctx->name = urcf->resolved_domain;
 #if (nginx_version) < 1005008
@@ -225,7 +227,7 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 
 assign:
 	ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0,
-		"upstream_jdomain: resolved_num=%ud", urcf->resolved_num); 
+		"upstream_jdomain: resolved_num=%ud", urcf->resolved_num);
 
 	if(urpd->current == -1){
 		urcf->resolved_index = (urcf->resolved_index + 1) % urcf->resolved_num;
@@ -270,6 +272,8 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_str_t		*value, domain, s;
 	ngx_int_t		default_port, max_ips;
 	ngx_uint_t		retry;
+	ngx_addr_t		fallback;
+	in_port_t		fallback_port;
 	ngx_http_upstream_jdomain_peer_t		*paddr;
 	ngx_url_t		u;
 	ngx_uint_t		i;
@@ -280,6 +284,11 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	retry = 1;
 	domain.data = NULL;
 	domain.len = 0;
+	fallback.sockaddr = NULL;
+	fallback.socklen = 0;
+	fallback.name.data = NULL;
+	fallback.name.len = 0;
+	fallback_port = 0;
 
 	uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
 
@@ -299,7 +308,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	}
 	ngx_memzero(us, sizeof(ngx_http_upstream_server_t));
 #endif
-	
+
 	urcf = ngx_http_conf_upstream_srv_conf(uscf,
 					ngx_http_upstream_jdomain_module);
 
@@ -322,13 +331,13 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		if (ngx_strncmp(value[i].data, "interval=", 9) == 0) {
 			s.len = value[i].len - 9;
 			s.data = &value[i].data[9];
-			
+
 			interval = ngx_parse_time(&s, 1);
-			
+
 			if (interval == (time_t) NGX_ERROR) {
 				goto invalid;
 			}
-			
+
 			continue;
 		}
 
@@ -344,6 +353,17 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 		if (ngx_strncmp(value[i].data, "retry_off", 9) == 0) {
 			retry = 0;
+
+			continue;
+		}
+
+		if (ngx_strncmp(value[i].data, "fallback=", 9) == 0) {
+			if (ngx_parse_addr_port(cf->pool, &fallback, value[i].data + 9, value[i].len - 9) != NGX_OK) {
+				goto invalid;
+			}
+			fallback.name.data = value[i].data + 9;
+			fallback.name.len = value[i].len - 9;
+			fallback_port = ngx_inet_get_port(fallback.sockaddr);
 
 			continue;
 		}
@@ -369,25 +389,35 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	urcf->default_port = default_port;
 	urcf->resolved_max_ips = max_ips;
 	urcf->upstream_retry = retry;
+	urcf->fallback_addr = fallback;
+	urcf->fallback_port = fallback_port ? fallback_port : default_port;
 
 	ngx_memzero(&u, sizeof(ngx_url_t));
 	u.url = value[1];
 	u.default_port = (in_port_t) urcf->default_port;
 
 	if (ngx_parse_url(cf->pool, &u) != NGX_OK) {
-		if (u.err) {
-			ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-				"%s in upstream \"%V\"", u.err, &u.url);
+		if (urcf->fallback_addr.sockaddr == NULL) {
+			if (u.err) {
+				ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+					"%s in upstream \"%V\"", u.err, &u.url);
+			}
+			return NGX_CONF_ERROR;
+		} else {
+			if (u.err) {
+				ngx_conf_log_error(NGX_LOG_WARN, cf, 0,
+					"%s in upstream \"%V\", using fallback address \"%V\"", u.err, &u.url, &urcf->fallback_addr.name);
+			}
+			u.addrs = &urcf->fallback_addr;
+			u.naddrs = 1;
 		}
-	
-		return NGX_CONF_ERROR;
 	}
 
 	urcf->resolved_num = 0;
 	for(i = 0; i < u.naddrs ;i++){
 		paddr = &urcf->peers[urcf->resolved_num];
 		paddr->sockaddr = *(struct sockaddr*)u.addrs[i].sockaddr;
-		paddr->socklen = u.addrs[i].socklen; 
+		paddr->socklen = u.addrs[i].socklen;
 
 		paddr->name = u.addrs[i].name;
 
@@ -426,14 +456,16 @@ static void
 ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 {
 	struct sockaddr		*addr;
+	in_port_t		default_port;
 	ngx_uint_t		i;
 	ngx_resolver_t		*r;
 	ngx_http_upstream_jdomain_peer_t		*peer;
 
 	ngx_http_upstream_jdomain_srv_conf_t *urcf;
-	
+
 	r = ctx->resolver;
 	urcf = (ngx_http_upstream_jdomain_srv_conf_t *)ctx->data;
+	default_port = urcf->default_port;
 
 	ngx_log_debug3(NGX_LOG_DEBUG_CORE, r->log, 0,
 			"upstream_jdomain: \"%V\" resolved state(%i: %s)",
@@ -441,12 +473,20 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 			ngx_resolver_strerror(ctx->state));
 
 	if (ctx->state || ctx->naddrs == 0) {
-		ngx_log_error(NGX_LOG_ERR, r->log, 0,
-			"upstream_jdomain: resolver failed ,\"%V\" (%i: %s))",
-			&ctx->name, ctx->state,
-			ngx_resolver_strerror(ctx->state));
+		if (urcf->fallback_addr.sockaddr == NULL) {
+			ngx_log_error(NGX_LOG_ERR, r->log, 0,
+				"upstream_jdomain: resolver failed, \"%V\" (%i: %s)",
+				&ctx->name, ctx->state, ngx_resolver_strerror(ctx->state));
 
-		goto end;
+			goto end;
+		} else {
+			ngx_log_error(NGX_LOG_WARN, r->log, 0,
+				"upstream_jdomain: resolver failed, \"%V\" (%i: %s), using fallback address \"%V\"",
+				&ctx->name, ctx->state, ngx_resolver_strerror(ctx->state), &urcf->fallback_addr.name);
+			ctx->addrs = (ngx_resolver_addr_t *)&urcf->fallback_addr;
+			default_port = urcf->fallback_port;
+			ctx->naddrs = 1;
+		}
 	}
 
 	urcf->resolved_num = 0;
@@ -461,7 +501,7 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 
 		((struct sockaddr_in*)addr)->sin_family = AF_INET;
 		((struct sockaddr_in*)addr)->sin_addr.s_addr = ctx->addrs[i];
-		((struct sockaddr_in*)addr)->sin_port = htons(urcf->default_port);
+		((struct sockaddr_in*)addr)->sin_port = htons(default_port);
 #else
 		peer->socklen = ctx->addrs[i].socklen;
 
@@ -469,21 +509,20 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 
 		switch (addr->sa_family) {
 		case AF_INET6:
-			((struct sockaddr_in6*)addr)->sin6_port = htons((u_short) urcf->default_port);
+			((struct sockaddr_in6*)addr)->sin6_port = htons((u_short) default_port);
 			break;
 		default:
-			((struct sockaddr_in*)addr)->sin_port = htons((u_short) urcf->default_port);
+			((struct sockaddr_in*)addr)->sin_port = htons((u_short) default_port);
 		}
 
 #endif
 		peer->name.data = peer->ipstr;
-		peer->name.len = 
+		peer->name.len =
 #if (nginx_version) <= 1005002
 			ngx_sock_ntop(addr, peer->ipstr, NGX_SOCKADDR_STRLEN, 1);
 #else
 			ngx_sock_ntop(addr, peer->socklen, peer->ipstr, NGX_SOCKADDR_STRLEN, 1);
 #endif
-
 
 		urcf->resolved_num++;
 
