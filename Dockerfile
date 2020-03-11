@@ -10,4 +10,6 @@ RUN yum install -y \
 	openssl-devel \
 	pcre-devel \
 	procps \
-	tar
+	tar \
+	unbound \
+	valgrind

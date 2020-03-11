@@ -1,0 +1,4 @@
+name: 'Nginx Module Toolbox'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

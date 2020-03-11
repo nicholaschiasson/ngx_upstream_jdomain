@@ -1,0 +1,20 @@
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Configure
+        uses: ./.github/actions/nginx-module-toolbox
+        run: ./build.sh
+  # test:
+  #   runs-on: ubuntu-latest
+  #   name: Test
+  #   needs: [build]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Test::Nginx
+  #       run: ./test.sh
