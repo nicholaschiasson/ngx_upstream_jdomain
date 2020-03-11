@@ -8,7 +8,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Configure
-        uses: ./.github/actions/nginx-module-toolbox
+        uses: ./.github/actions/nginx-module-toolbox.yml
         with:
           entrypoint: ./build.sh
   # test:
