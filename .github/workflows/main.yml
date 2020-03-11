@@ -7,15 +7,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Configure
+      - name: Build
         uses: ./.github/actions/nginx-module-toolbox
         with:
           entrypoint: ./build.sh
-  # test:
-  #   runs-on: ubuntu-latest
-  #   name: Test
-  #   needs: [build]
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Test::Nginx
-  #       run: ./test.sh
+      - name: Test
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./test.sh
