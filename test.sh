@@ -2,7 +2,7 @@
 
 set -ex
 
-pushd /opt/ngx_upstream_jdomain/bin
+pushd bin
 make
 make install
 cp ../nginx.conf /usr/local/nginx/conf/nginx.conf
