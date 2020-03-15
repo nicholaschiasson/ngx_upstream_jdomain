@@ -456,7 +456,7 @@ static void
 ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 {
 	struct sockaddr		*addr;
-	in_port_t		default_port;
+	in_port_t		port;
 	ngx_uint_t		i;
 	ngx_resolver_t		*r;
 	ngx_http_upstream_jdomain_peer_t		*peer;
@@ -465,7 +465,7 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 
 	r = ctx->resolver;
 	urcf = (ngx_http_upstream_jdomain_srv_conf_t *)ctx->data;
-	default_port = urcf->default_port;
+	port = urcf->default_port;
 
 	ngx_log_debug3(NGX_LOG_DEBUG_CORE, r->log, 0,
 			"upstream_jdomain: \"%V\" resolved state(%i: %s)",
@@ -484,7 +484,7 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 				"upstream_jdomain: resolver failed, \"%V\" (%i: %s), using fallback address \"%V\"",
 				&ctx->name, ctx->state, ngx_resolver_strerror(ctx->state), &urcf->fallback_addr.name);
 			ctx->addrs = (ngx_resolver_addr_t *)&urcf->fallback_addr;
-			default_port = urcf->fallback_port;
+			port = urcf->fallback_port;
 			ctx->naddrs = 1;
 		}
 	}
@@ -501,7 +501,7 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 
 		((struct sockaddr_in*)addr)->sin_family = AF_INET;
 		((struct sockaddr_in*)addr)->sin_addr.s_addr = ctx->addrs[i];
-		((struct sockaddr_in*)addr)->sin_port = htons(default_port);
+		((struct sockaddr_in*)addr)->sin_port = htons(port);
 #else
 		peer->socklen = ctx->addrs[i].socklen;
 
@@ -509,10 +509,10 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 
 		switch (addr->sa_family) {
 		case AF_INET6:
-			((struct sockaddr_in6*)addr)->sin6_port = htons((u_short) default_port);
+			((struct sockaddr_in6*)addr)->sin6_port = htons((u_short) port);
 			break;
 		default:
-			((struct sockaddr_in*)addr)->sin_port = htons((u_short) default_port);
+			((struct sockaddr_in*)addr)->sin_port = htons((u_short) port);
 		}
 
 #endif
