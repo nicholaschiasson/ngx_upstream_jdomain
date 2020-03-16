@@ -1,4 +1,4 @@
 name: Nginx Module Toolbox
 runs:
   using: docker
-  image: docker://docker.pkg.github.com/nicholaschiasson/docker-nginx-module-toolbox/nginx-toolbox:latest
+  image: docker.pkg.github.com/nicholaschiasson/docker-nginx-module-toolbox/nginx-toolbox:latest
