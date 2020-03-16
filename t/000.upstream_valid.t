@@ -18,7 +18,7 @@ server {
 }
 --- config
 location = / {
-    proxy_pass http://upstream_test;
+		proxy_pass http://upstream_test;
 }
 --- request
 GET /
