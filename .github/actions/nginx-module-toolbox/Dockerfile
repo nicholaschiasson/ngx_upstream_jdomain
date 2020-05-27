@@ -1,11 +1,11 @@
 FROM amazonlinux:2
 
-WORKDIR /opt/nginx-module-toolbox
-
-RUN yum groupinstall -y "Development Tools"
+RUN yum update -y
 
 RUN yum install -y \
 	bind-utils \
+	expat-devel \
+	gcc \
 	gzip \
 	openssl-devel \
 	pcre-devel \
@@ -14,14 +14,15 @@ RUN yum install -y \
 	procps \
 	tar \
 	unbound \
-	valgrind
+	valgrind \
+	which
 
 RUN cpanm --force Spiffy
 RUN cpanm Test::Base
 RUN cpanm Test::Nginx
 
-COPY unbound.conf /opt/unbound.conf
+RUN unbound-control-setup
+COPY unbound.conf /tmp/unbound.conf
+COPY unbound_local_zone_ngx_upstream_jdomain.conf /tmp/unbound_local_zone_ngx_upstream_jdomain.conf
 
-RUN echo "local-data: \"ngx_upstream_jdomain.test 1 A 127.0.0.1\"" > /opt/ngx_upstream_jdomain_unbound_active_test.conf
-
-RUN unbound -c /opt/unbound.conf -vvv
+WORKDIR /github/workspace
