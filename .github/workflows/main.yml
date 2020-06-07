@@ -16,25 +16,25 @@ jobs:
         with:
           entrypoint: ./test.sh
       - name: Bump major version and push tag
-        if: ${{ github.ref == "master" && startsWith(github.head_ref, "major/") }}
+        if: ${{ github.ref == 'master' && startsWith(github.head_ref, 'major/') }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: major
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump minor version and push tag
-        if: ${{ github.ref == "master" && startsWith(github.head_ref, "minor/") }}
+        if: ${{ github.ref == 'master' && startsWith(github.head_ref, 'minor/') }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: minor
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump patch version and push tag
-        if: ${{ github.ref == "master" && startsWith(github.head_ref, "patch/") }}
+        if: ${{ github.ref == 'master' && startsWith(github.head_ref, 'patch/') }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: patch
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump version and push tag
-        if: ${{ github.ref == "master" && !(startsWith(github.head_ref, "major/") || startsWith(github.head_ref, "minor/") || startsWith(github.head_ref, "patch/")) }}
+        if: ${{ github.ref == 'master' && !(startsWith(github.head_ref, 'major/') || startsWith(github.head_ref, 'minor/') || startsWith(github.head_ref, 'patch/')) }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
