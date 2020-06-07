@@ -7,5 +7,3 @@ inputs:
 runs:
   using: docker
   image: Dockerfile
-  pre-entrypoint: setup.sh
-
