@@ -364,6 +364,11 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			fallback.name.data = value[i].data + 9;
 			fallback.name.len = value[i].len - 9;
 			fallback_port = ngx_inet_get_port(fallback.sockaddr);
+			if (fallback_port < 1) {
+				ngx_inet_set_port(fallback.sockaddr, (in_port_t) default_port);
+				fallback.name.data = ngx_pcalloc(cf->pool, NGX_SOCKADDR_STRLEN * sizeof(u_char));
+				fallback.name.len = ngx_sock_ntop(fallback.sockaddr, fallback.socklen, fallback.name.data, NGX_SOCKADDR_STRLEN, 1);
+			}
 
 			continue;
 		}
@@ -409,6 +414,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 					"%s in upstream \"%V\", using fallback address \"%V\"", u.err, &u.url, &urcf->fallback_addr.name);
 			}
 			u.addrs = &urcf->fallback_addr;
+			u.default_port = urcf->fallback_port;
 			u.naddrs = 1;
 		}
 	}
