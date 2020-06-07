@@ -208,6 +208,8 @@ ngx_http_upstream_jdomain_get_peer(ngx_peer_connection_t *pc, void *data)
 	}
 
 assign:
+	// TODO: Fix case when we cannot resolve, it assigns the previously resolved peer.
+
 	ngx_log_debug1(NGX_LOG_DEBUG_HTTP, pc->log, 0, "upstream_jdomain: resolved_num=%ud", urcf->resolved_num);
 
 	if(urpd->current == -1){
