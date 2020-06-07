@@ -11,4 +11,4 @@ unbound-control verbosity 3
 
 export TEST_NGINX_USE_VALGRIND=1
 
-prove -rv t/ || true
+prove -rv t/
