@@ -8,8 +8,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: test
-        if: ${{ startsWith(github.head_ref, 'patch/') }}
-        run: echo hello
+        # if: ${{ startsWith(github.head_ref, 'patch/') }}
+        run: echo ${{ github.ref }} and ${{ github.head_ref }} && ${{ github.base_ref }}
       # - name: Build
       #   uses: ./.github/actions/nginx-module-toolbox
       #   with:
