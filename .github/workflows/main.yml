@@ -19,3 +19,32 @@ jobs:
         uses: ./.github/actions/nginx-module-toolbox
         with:
           entrypoint: ./leakcheck.sh
+  tag:
+    runs-on: ubuntu-latest
+    name: Tag
+    needs: test
+    if: ${{ github.ref == 'master' }}
+    steps:
+      - name: Bump major version and push tag
+        if: ${{ startsWith(github.head_ref, 'refs/heads/major/') }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          DEFAULT_BUMP: major
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump minor version and push tag
+        if: ${{ startsWith(github.head_ref, 'refs/heads/minor/') }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          DEFAULT_BUMP: minor
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump patch version and push tag
+        if: ${{ startsWith(github.head_ref, 'refs/heads/patch/') }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump version and push tag
+        if: ${{ !(startsWith(github.head_ref, 'refs/heads/major/') || startsWith(github.head_ref, 'refs/heads/minor/') || startsWith(github.head_ref, 'refs/heads/patch/')) }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
