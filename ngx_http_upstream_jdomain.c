@@ -34,6 +34,7 @@ typedef struct {
 	ngx_str_t resolved_domain;
 	ngx_addr_t fallback_addr;
 	in_port_t fallback_port;
+	ngx_uint_t fallback_strict;
 	ngx_int_t resolved_status;
 	ngx_uint_t resolved_index;
 	time_t resolved_access;
@@ -254,6 +255,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_str_t *value, domain, s;
 	ngx_int_t default_port, max_ips;
 	ngx_uint_t retry;
+	ngx_uint_t fallback_strict;
 	ngx_addr_t fallback;
 	in_port_t fallback_port;
 	ngx_http_upstream_jdomain_peer_t *paddr;
@@ -264,6 +266,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	default_port = 80;
 	max_ips = 20;
 	retry = 1;
+	fallback_strict = 0;
 	domain.data = NULL;
 	domain.len = 0;
 	fallback.sockaddr = NULL;
@@ -352,6 +355,15 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 			continue;
 		}
+		
+		
+		if (ngx_strncmp(value[i].data, "strict", 6) == 0) {
+			fallback_strict = 1;
+
+			continue;
+		}
+		
+		
 		goto invalid;
 
 	}
@@ -374,6 +386,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	urcf->upstream_retry = retry;
 	urcf->fallback_addr = fallback;
 	urcf->fallback_port = fallback_port;
+	urcf->fallback_strict = fallback_strict;
 
 	ngx_memzero(&u, sizeof(ngx_url_t));
 	u.url = value[1];
@@ -444,11 +457,26 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 	ngx_log_debug3(NGX_LOG_DEBUG_CORE, r->log, 0, "upstream_jdomain: \"%V\" resolved state(%i: %s)", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state));
 
 	if (ctx->state || ctx->naddrs == 0) {	
-	    if (urcf->fallback_addr.sockaddr != NULL && ( ctx->state == 3 || ctx->state == 1 ) ) {
-			ngx_log_error(NGX_LOG_WARN, r->log, 0, "upstream_jdomain: resolver failed, \"%V\" (%i: %s), using fallback address \"%V\"", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state), &urcf->fallback_addr.name);
-			ctx->addrs = (ngx_resolver_addr_t *)&urcf->fallback_addr;
-			port = urcf->fallback_port;
-			ctx->naddrs = 1;
+	    if (urcf->fallback_addr.sockaddr != NULL ) {
+	        if (urcf->fallback_strict == 1 ) {
+                ngx_log_error(NGX_LOG_WARN, r->log, 0, "upstream_jdomain: resolver failed, \"%V\" (%i: %s), strict using fallback address \"%V\"", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state), &urcf->fallback_addr.name);
+                ctx->addrs = (ngx_resolver_addr_t *)&urcf->fallback_addr;
+                port = urcf->fallback_port;
+                ctx->naddrs = 1;
+	        } else {
+                switch (ctx->state) {
+                    case 1:
+                    case 3:
+                        ngx_log_error(NGX_LOG_WARN, r->log, 0, "upstream_jdomain: resolver failed, \"%V\" (%i: %s), non-strict using fallback address \"%V\"", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state), &urcf->fallback_addr.name);
+                        ctx->addrs = (ngx_resolver_addr_t *)&urcf->fallback_addr;
+                        port = urcf->fallback_port;
+                        ctx->naddrs = 1;
+                        break;
+                    default:
+                        ngx_log_error(NGX_LOG_ERR, r->log, 0, "upstream_jdomain: resolver failed without fallback, \"%V\" (%i: %s)", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state));
+                        goto end;    
+                }
+	        }
 	    } else {
             ngx_log_error(NGX_LOG_ERR, r->log, 0, "upstream_jdomain: resolver failed, \"%V\" (%i: %s)", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state));
             goto end;
