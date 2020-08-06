@@ -444,7 +444,7 @@ ngx_http_upstream_jdomain_handler(ngx_resolver_ctx_t *ctx)
 	ngx_log_debug3(NGX_LOG_DEBUG_CORE, r->log, 0, "upstream_jdomain: \"%V\" resolved state(%i: %s)", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state));
 
 	if (ctx->state || ctx->naddrs == 0) {	
-	    if (urcf->fallback_addr.sockaddr != NULL && ( strcmp(ngx_resolver_strerror(ctx->state), "Host not found") == 0 || strcmp(ngx_resolver_strerror(ctx->state), "Format error") == 0 ) ) {
+	    if (urcf->fallback_addr.sockaddr != NULL && ( ctx->state == 3 || ctx->state == 1 ) ) {
 			ngx_log_error(NGX_LOG_WARN, r->log, 0, "upstream_jdomain: resolver failed, \"%V\" (%i: %s), using fallback address \"%V\"", &ctx->name, ctx->state, ngx_resolver_strerror(ctx->state), &urcf->fallback_addr.name);
 			ctx->addrs = (ngx_resolver_addr_t *)&urcf->fallback_addr;
 			port = urcf->fallback_port;
