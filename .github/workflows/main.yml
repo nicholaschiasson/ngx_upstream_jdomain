@@ -40,13 +40,13 @@ jobs:
           DEFAULT_BUMP: major
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump minor version and push tag
-      if: ${{ steps.check-semver.outputs.semver == 'minor' }}
+        if: ${{ steps.check-semver.outputs.semver == 'minor' }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: minor
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump patch version and push tag
-      if: ${{ steps.check-semver.outputs.semver == 'patch' }}
+        if: ${{ steps.check-semver.outputs.semver == 'patch' }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: patch
