@@ -1,6 +1,17 @@
 on: [push, pull_request]
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    name: debug
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          GITHUB_EVENT_CONTEXT: ${{ toJson(github.event) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+          echo "$GITHUB_EVENT_CONTEXT"
   test:
     runs-on: ubuntu-latest
     name: Test
@@ -19,42 +30,35 @@ jobs:
     runs-on: ubuntu-latest
     name: Tag
     needs: test
-    if: ${{ github.ref == 'refs/heads/patch/fix-versioning' && github.event_name == 'push' && (success() || failure()) }}
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' && (success() || failure()) }}
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          GITHUB_EVENT_CONTEXT: ${{ toJson(github.event) }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check semver bump
+        id: check-semver
         run: |
-          echo "$GITHUB_CONTEXT"
-          echo "$GITHUB_EVENT_CONTEXT"
-      # - name: Checkout
-      #   uses: actions/checkout@v2
-      # - name: Check semver bump
-      #   id: check-semver
-      #   run: |
-      #     if [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/patch/.+$" ]]; then
-      #       echo ::set-output name=semver::patch
-      #     elif [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/major/.+$" ]]; then
-      #       echo ::set-output name=semver::major
-      #     else
-      #       echo ::set-output name=semver::minor
-      #     fi
-      # - name: Bump major version and push tag
-      #   if: ${{ steps.check-semver.outputs.semver == 'major' }}
-      #   uses: anothrNick/github-tag-action@1.17.2
-      #   env:
-      #     DEFAULT_BUMP: major
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Bump minor version and push tag
-      #   if: ${{ steps.check-semver.outputs.semver == 'minor' }}
-      #   uses: anothrNick/github-tag-action@1.17.2
-      #   env:
-      #     DEFAULT_BUMP: minor
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Bump patch version and push tag
-      #   if: ${{ steps.check-semver.outputs.semver == 'patch' }}
-      #   uses: anothrNick/github-tag-action@1.17.2
-      #   env:
-      #     DEFAULT_BUMP: patch
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/patch/.+$" ]]; then
+            echo ::set-output name=semver::patch
+          elif [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/major/.+$" ]]; then
+            echo ::set-output name=semver::major
+          else
+            echo ::set-output name=semver::minor
+          fi
+      - name: Bump major version and push tag
+        if: ${{ steps.check-semver.outputs.semver == 'major' }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          DEFAULT_BUMP: major
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump minor version and push tag
+        if: ${{ steps.check-semver.outputs.semver == 'minor' }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          DEFAULT_BUMP: minor
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump patch version and push tag
+        if: ${{ steps.check-semver.outputs.semver == 'patch' }}
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
