@@ -9,7 +9,7 @@ add_response_body_check(sub {
 	} elsif ($body eq "Kill") {
         `echo 'local-data: "example.com 1 A 127.0.0.3"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control stop` or die $!;
     } else {
-		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 	}
 	sleep(2);
 });
