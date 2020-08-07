@@ -122,7 +122,7 @@ location = / {
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345 strict;
+	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345 ;
 }
 server {
 	listen 127.0.0.3:12345;
