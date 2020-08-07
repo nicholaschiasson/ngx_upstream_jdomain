@@ -6,6 +6,8 @@ add_response_body_check(sub {
 		`echo > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 	} elsif ($body eq "Pass 1") {
 		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
+	} elsif ($body eq "Fallback 1") {
+	    `echo 'local-data: "example.com 1 A 127.0.0.4"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 	} else {
 		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 	}
@@ -126,11 +128,11 @@ upstream upstream_test {
 }
 server {
 	listen 127.0.0.3:12345;
-	return 999 'Backup';
+	return 999 'Fallback 2';
 }
 server {
 	listen 127.0.0.2:8000;
-	return 200 'Pass';
+	return 200 'Fallback 1';
 }
 --- config
 location = / {
@@ -141,4 +143,4 @@ location = / {
 --- error_code eval
 [200, 200, 200, 200, 200, 200, 200, 200]
 --- response_body eval
-["Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
+["Pass", "Fallback 1", "Fallback 1", "Fallback 1", "Fallback 1", "Fallback 1", "Fallback 1", "Fallback 1"]
