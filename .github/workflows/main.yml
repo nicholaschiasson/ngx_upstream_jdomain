@@ -6,12 +6,14 @@ jobs:
     name: debug
     steps:
       - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          GITHUB_EVENT_CONTEXT: ${{ toJson(github.event) }}
         run: |
-          echo "$GITHUB_CONTEXT"
-          echo "$GITHUB_EVENT_CONTEXT"
+          if [[ "${{ github.event.head_commit.message }}" =~ "^Merge pull request #\d+ from [^/]+/patch/.+$" ]]; then
+            echo "IT'S A patch"
+          elif [[ "${{ github.event.head_commit.message }}" =~ "^Merge pull request #\d+ from [^/]+/major/.+$" ]]; then
+            echo "IT'S A major"
+          else
+            echo "IT'S A minor"
+          fi
   test:
     runs-on: ubuntu-latest
     name: Test
@@ -37,9 +39,9 @@ jobs:
       - name: Check semver bump
         id: check-semver
         run: |
-          if [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/patch/.+$" ]]; then
+          if [[ "${{ github.event.head_commit.message }}" =~ "^Merge pull request #\d+ from [^/]+/patch/.+$" ]]; then
             echo ::set-output name=semver::patch
-          elif [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/major/.+$" ]]; then
+          elif [[ "${{ github.event.head_commit.message }}" =~ "^Merge pull request #\d+ from [^/]+/major/.+$" ]]; then
             echo ::set-output name=semver::major
           else
             echo ::set-output name=semver::minor
