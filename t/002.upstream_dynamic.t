@@ -5,11 +5,11 @@ add_response_body_check(sub {
 	if ($body eq "Pass") {
 		`echo > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 	} elsif ($body eq "Pass 1") {
-		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 	} elsif ($body eq "Kill") {
         `echo 'local-data: "example.com 1 A 127.0.0.3"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control stop` or die $!;
     } else {
-		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload or die $!;
 	}
 	sleep(2);
 });
@@ -20,7 +20,7 @@ __DATA__
 
 === TEST 1: Dynamic upstream
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload ` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -46,7 +46,7 @@ location = / {
 ["Pass 1", "Pass 1", "Pass 2", "Pass 2", "Pass 1", "Pass 1", "Pass 2", "Pass 2"]
 === TEST 2: Dynamic upstream with periodically failing DNS resolution
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload ` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -68,7 +68,7 @@ location = / {
 ["Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
 === TEST 3: Dynamic upstream with periodically failing DNS resolution and with strict mode fallback
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload ` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -94,7 +94,7 @@ location = / {
 ["Pass", "Pass", "Backup", "Backup", "Pass", "Pass", "Backup", "Backup"]
 === TEST 4: Dynamic upstream with periodically failing DNS resolution and specifying port number with strict fallback
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload ` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -120,7 +120,7 @@ location = / {
 ["Pass", "Pass", "Backup", "Backup", "Pass", "Pass", "Backup", "Backup"]
 === TEST 5: Dynamic upstream with constantly timeout DNS resolution without strict fallback
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload ` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -146,7 +146,7 @@ location = / {
 ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
 === TEST 6: Dynamic upstream with constantly timeout DNS resolution without strict fallback
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload || unbound-control start` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control start ` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
