@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Test
-    if: ${{ github.event_name != 'pull_request_review_comment' || (github.event_name == 'pull_request_review_comment' && github.event.comment.body == 'actions.retry') }}
+    # if: ${{ github.event_name != 'pull_request_review_comment' || github.event.comment.body == 'actions.retry') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
