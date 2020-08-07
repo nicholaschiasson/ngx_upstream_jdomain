@@ -1,19 +1,6 @@
 on: [push, pull_request]
 
 jobs:
-  debug:
-    runs-on: ubuntu-latest
-    name: debug
-    steps:
-      - name: Dump GitHub context
-        run: |
-          if [[ "${{ github.event.head_commit.message }}" =~ ^Merge\ pull\ request\ #[0-9]+\ from\ [^/]+/patch/.+$ ]]; then
-            echo "IT'S A patch"
-          elif [[ "${{ github.event.head_commit.message }}" =~ ^Merge\ pull\ request\ #[0-9]+\ from\ [^/]+/major/.+$ ]]; then
-            echo "IT'S A major"
-          else
-            echo "IT'S A minor"
-          fi
   test:
     runs-on: ubuntu-latest
     name: Test
