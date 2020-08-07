@@ -26,9 +26,9 @@ jobs:
       - name: Check semver bump
         id: check-semver
         run: |
-          if [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/patch/.+$" ]]; then
+          if [[ "${{ github.event.head_commit.message }}" =~ ^Merge\ pull\ request\ #[0-9]+\ from\ [^/]+/patch/.+$ ]]; then
             echo ::set-output name=semver::patch
-          elif [[ "${{ github.event.commits[0].message }}" =~ "^Merge pull request #\d+ from [^/]+/major/.+$" ]]; then
+          elif [[ "${{ github.event.head_commit.message }}" =~ ^Merge\ pull\ request\ #[0-9]+\ from\ [^/]+/major/.+$ ]]; then
             echo ::set-output name=semver::major
           else
             echo ::set-output name=semver::minor
