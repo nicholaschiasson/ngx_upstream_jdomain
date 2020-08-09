@@ -120,7 +120,7 @@ location = / {
 ["Pass", "Pass", "Backup", "Backup", "Pass", "Pass", "Backup", "Backup"]
 === TEST 5: Dynamic upstream with constantly refused DNS resolution with non-strict fallback
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload ` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -146,7 +146,7 @@ location = / {
 ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
 === TEST 6: Dynamic upstream with constantly refused DNS resolution with strict fallback
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control start ` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /tmp/unbound_local_zone_ngx_upstream_jdomain.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
