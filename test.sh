@@ -4,13 +4,13 @@ set -ex
 
 BIN_DIR=${GITHUB_WORKSPACE}/bin
 
-pushd ${BIN_DIR}
+pushd ${BIN_DIR}/workdir
 
 make install
 
 popd
 
-export PATH="${GITHUB_WORKSPACE}/bin/sbin:${PATH}"
+export PATH="${BIN_DIR}/sbin:${PATH}"
 
 echo "nameserver 127.0.0.88" > /etc/resolv.conf
 
