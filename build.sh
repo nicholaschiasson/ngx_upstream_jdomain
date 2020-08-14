@@ -8,7 +8,9 @@ echo $BIN_DIR
 
 rm -rf ${BIN_DIR}
 
-pushd $(mktemp -d)
+mkdir -p ${BIN_DIR}
+
+pushd ${BIN_DIR}
 
 NGINX_PACKAGE=/tmp/nginx.tar.gz
 
