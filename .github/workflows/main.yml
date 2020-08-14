@@ -11,9 +11,9 @@ jobs:
         uses: ./.github/actions/nginx-module-toolbox
         with:
           entrypoint: ./lint.sh
-  test:
+  build:
     runs-on: ubuntu-latest
-    name: Test
+    name: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -21,6 +21,23 @@ jobs:
         uses: ./.github/actions/nginx-module-toolbox
         with:
           entrypoint: ./build.sh
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: nginx
+          path: bin
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: nginx
+          path: bin
       - name: Test
         uses: ./.github/actions/nginx-module-toolbox
         with:
