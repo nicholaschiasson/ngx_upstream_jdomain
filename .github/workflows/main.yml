@@ -1,6 +1,16 @@
 on: [push, pull_request]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./lint.sh
   test:
     runs-on: ubuntu-latest
     name: Test

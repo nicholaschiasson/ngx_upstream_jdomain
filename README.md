@@ -115,6 +115,10 @@ you'll need some tools.
 	github actions workflows locally to save you from pushing commits just to
 	watch the CI fail.
 
+### Code Style Validation
+
+> TODO
+
 ### Building & Testing
 
 The file `./build.sh` exists for the purpose of building a minimal nginx binary
