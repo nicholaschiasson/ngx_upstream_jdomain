@@ -439,14 +439,13 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 			return NGX_CONF_ERROR;
 		}
 		if (u.err) {
-			ngx_conf_log_error(
-				NGX_LOG_WARN,
-				cf,
-				0,
-				"%s in upstream \"%V\", using fallback address \"%V\"",
-				u.err,
-				&u.url,
-				&urcf->fallback_addr.name);
+			ngx_conf_log_error(NGX_LOG_WARN,
+			                   cf,
+			                   0,
+			                   "%s in upstream \"%V\", using fallback address \"%V\"",
+			                   u.err,
+			                   &u.url,
+			                   &urcf->fallback_addr.name);
 		}
 		u.addrs = &urcf->fallback_addr;
 		u.default_port = urcf->fallback_port;
