@@ -2,6 +2,8 @@
 
 set -ex
 
+source .env
+
 BIN_DIR=${GITHUB_WORKSPACE}/bin
 
 pushd ${BIN_DIR}/workdir

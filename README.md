@@ -114,47 +114,90 @@ you'll need some tools.
 - **[act](https://github.com/nektos/act#installation)**: to simulate executing
 	github actions workflows locally to save you from pushing commits just to
 	watch the CI fail.
+- **[rust](https://www.rust-lang.org/tools/install)**: dependency of
+	`cargo-make`.
+- **[cargo-make](https://sagiegurari.github.io/cargo-make/#installation)**: to
+	run common development tasks such as building, testing, and formatting code.
 
-### Linting, Static Analysis, Building, and Testing
+### Task Runner
 
-The `./scripts/` directory contains a set of scripts used by the github actions
-workflow. The aforementioned scripts make assumptions about their environment,
-and thus will not work being executed directly. In order to use the scripts, you
-may choose to use the Dockerfile at `./.github/actions/nginx-module-toolbox/Dockerfile`
-directly and mount the project root, or you may simply make use of `act`.
+`cargo-make` is an advanced task runner that will enabled you to easily perform
+common development operations like formatting the code, building the module,
+running the test suite, and running code analysis. You can see the task
+definitions in the file `Makefile.toml`. Installing `cargo-make` will result in
+a standalone executable called `makers` as well as a `cargo` extension which
+can be executed via `cargo make`. As this project is not a `rust` crate, it is
+recommended to simply use `makers`.
 
-The file `./scripts/lint.sh` exists for the purpose of validating code style.
-Should your code fail the validation, you can automatically fix it by using the
-program `clang-format` with the `-i` flag to format files in place. The config
-options for this can be found in the file `./.clang-format`.
+Also note that for simplicity's sake, the task runner uses docker to run all
+tasks. This means the build binary is not targetting your host platform.
 
-The file `./scripts/build.sh` exists for the purpose of building a minimal
-nginx binary with the module statically linked.
+#### Formatting
 
-The file `./scripts/test.sh` exists for the purpose of running the test suite
-against an nginx binary built with the module. This script depends on the
-output of `./scripts/build.sh`.
+Incorrectly formatted code will cause the github actions linting job to fail.
+To avoid this, you can run the format task before pushing new changes, like so:
 
-The file `./scripts/analyse.sh` exists for the purpose of running static code
-analysis on the module source using `clang-tidy`. This script depends on the
-output of `./scripts/build.sh` as well. Technically it does not actually need a
-binary, but the build script fetches and caches the nginx source, which this
-script does depend on. The config options for `clang-tidy` can be found in the
-file `./.clang-tidy`.
-
-With `act`, you can run these scripts as they would be run when you push
-changes to the remote and the workflow is triggered via github actions.
-
-Since there is more than one job in the main workflow, you need to specify the
-test job when you run `act`. This command builds nginx and runs the tests, you
-can expect to be using it a lot:
-
-```shell
-act -vj test
+```bash
+makers format
 ```
 
-Note `-v` is used to enable verbose mode to give more visibility on everything
-`act` is doing.
+This formatting is performed by a tool called `clang-format`. You can find the
+config options for this defined in the file `./.clang-format`.
+
+#### Building
+
+You can build nginx with the module by running the build task, like so:
+
+```bash
+makers build
+```
+
+This will output a `./bin/` directory, which will contain the nginx source for
+the version of nginx defined in the file `./.env` as well as an nginx binary at
+`./bin/sbin/nginx`. You add the directories in `./bin/workdir/src/` to your
+editor's includes path so facilitate local development.
+
+#### Static Code Analysis
+
+You can run a static analysis on the code via the analyse task:
+
+```bash
+makers analyse
+```
+
+This analysis is performed by a tool called `clang-tidy`. You can find the
+config options for this defined in the file `./.clang-tidy`.
+
+#### Testing
+
+You can run the test suite using the test task, like so:
+
+```bash
+makers test
+```
+
+### Running GitHub Actions
+
+With `act`, you can simulate the workflow that will run on GitHub servers once
+you push changes.
+
+There is more than one job in the main workflow, so you need to specify the
+test job when you run `act`. For example, you can use this command to run the
+code format validation:
+
+```shell
+act -vj lint
+```
+
+Note that the `lint` job does not format your code, it only checks that the
+formatting is as expected.
+
+Also note that `-v` is used to enable verbose mode to give more visibility on
+everything `act` is doing.
+
+The jobs you can (and should) run locally are `lint`, `build`, `analyse`, and
+`test`. The `analyse` and `test` jobs depend on the output from the `build`
+job.
 
 Also note that some jobs deal with uploading and downloading artifacts, so they
 may persist across jobs in the github actions workflow. These actions will fail

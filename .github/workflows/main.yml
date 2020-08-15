@@ -26,6 +26,7 @@ jobs:
         with:
           entrypoint: ./scripts/build.sh
       - name: Upload Artifacts
+        if: ${{ GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
         uses: actions/upload-artifact@v2
         with:
           name: nginx
@@ -38,6 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Download Artifacts
+        if: ${{ GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
         uses: actions/download-artifact@v2
         with:
           name: nginx
@@ -54,6 +56,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Download Artifacts
+        if: ${{ GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
         uses: actions/download-artifact@v2
         with:
           name: nginx

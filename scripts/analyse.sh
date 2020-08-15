@@ -2,6 +2,8 @@
 
 set -ex
 
+source .env
+
 WORK_DIR=${GITHUB_WORKSPACE}/bin/workdir
 
 clang-tidy src/*.c -- \
