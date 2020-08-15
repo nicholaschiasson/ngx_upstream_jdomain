@@ -1,20 +1,67 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    name: Test
+    name: Lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./scripts/lint.sh
+  build:
+    runs-on: ubuntu-latest
+    name: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./build.sh
+          entrypoint: ./scripts/build.sh
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: nginx
+          path: bin
+  analyse:
+    runs-on: ubuntu-latest
+    name: Analyse
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: nginx
+          path: bin
+      - name: Analyse
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./scripts/analyse.sh
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: nginx
+          path: bin
       - name: Test
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./test.sh
+          entrypoint: ./scripts/test.sh
   tag:
     runs-on: ubuntu-latest
     name: Tag

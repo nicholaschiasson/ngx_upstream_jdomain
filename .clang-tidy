@@ -1,0 +1,10 @@
+---
+# All checks except signed bitwise warnings and unused parameter warnings
+Checks:                '*,-hicpp-signed-bitwise,-misc-unused-parameters'
+WarningsAsErrors:      '*'
+HeaderFilterRegex:     'Corresponding Header'
+AnalyzeTemporaryDtors: false
+FormatStyle:           none
+CheckOptions:
+  - key:               ''
+    value:             ''

@@ -3,7 +3,7 @@ inputs:
   nginxVersion:
     description: Version of nginx source to fetch.
     required: false
-    default: 1.16.1
+    default: 1.18.0
 runs:
   using: docker
   image: Dockerfile
