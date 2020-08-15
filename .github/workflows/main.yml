@@ -10,7 +10,7 @@ jobs:
       - name: Lint
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./lint.sh
+          entrypoint: ./scripts/lint.sh
   build:
     runs-on: ubuntu-latest
     name: Build
@@ -20,12 +20,28 @@ jobs:
       - name: Build
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./build.sh
+          entrypoint: ./scripts/build.sh
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: nginx
           path: bin
+  analyse:
+    runs-on: ubuntu-latest
+    name: Analyse
+    need: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: nginx
+          path: bin
+      - name: Analyse
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./scripts/analyse.sh
   test:
     runs-on: ubuntu-latest
     name: Test
@@ -41,7 +57,7 @@ jobs:
       - name: Test
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./test.sh
+          entrypoint: ./scripts/test.sh
   tag:
     runs-on: ubuntu-latest
     name: Tag

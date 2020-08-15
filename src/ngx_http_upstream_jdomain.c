@@ -437,27 +437,26 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 				  NGX_LOG_EMERG, cf, 0, "%s in upstream \"%V\"", u.err, &u.url);
 			}
 			return NGX_CONF_ERROR;
-		} else {
-			if (u.err) {
-				ngx_conf_log_error(
-				  NGX_LOG_WARN,
-				  cf,
-				  0,
-				  "%s in upstream \"%V\", using fallback address \"%V\"",
-				  u.err,
-				  &u.url,
-				  &urcf->fallback_addr.name);
-			}
-			u.addrs = &urcf->fallback_addr;
-			u.default_port = urcf->fallback_port;
-			u.naddrs = 1;
 		}
+		if (u.err) {
+			ngx_conf_log_error(
+				NGX_LOG_WARN,
+				cf,
+				0,
+				"%s in upstream \"%V\", using fallback address \"%V\"",
+				u.err,
+				&u.url,
+				&urcf->fallback_addr.name);
+		}
+		u.addrs = &urcf->fallback_addr;
+		u.default_port = urcf->fallback_port;
+		u.naddrs = 1;
 	}
 
 	urcf->resolved_num = 0;
 	for (i = 0; i < u.naddrs; i++) {
 		paddr = &urcf->peers[urcf->resolved_num];
-		paddr->sockaddr = *(struct sockaddr*)u.addrs[i].sockaddr;
+		paddr->sockaddr = *u.addrs[i].sockaddr;
 		paddr->socklen = u.addrs[i].socklen;
 
 		paddr->name = u.addrs[i].name;
