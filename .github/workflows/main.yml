@@ -1,10 +1,13 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     name: Lint
-    if: ${{ (github.event_name == 'push' && github.repository_owner == 'nicholaschiasson') || (github.event_name == 'pull_request' && github.repository_owner != 'nicholaschiasson') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -15,7 +18,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build
-    if: ${{ (github.event_name == 'push' && github.repository_owner == 'nicholaschiasson') || (github.event_name == 'pull_request' && github.repository_owner != 'nicholaschiasson') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -32,7 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Analyse
     needs: build
-    if: ${{ (github.event_name == 'push' && github.repository_owner == 'nicholaschiasson') || (github.event_name == 'pull_request' && github.repository_owner != 'nicholaschiasson') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -49,7 +50,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Test
     needs: build
-    if: ${{ (github.event_name == 'push' && github.repository_owner == 'nicholaschiasson') || (github.event_name == 'pull_request' && github.repository_owner != 'nicholaschiasson') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
