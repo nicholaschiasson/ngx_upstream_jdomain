@@ -197,38 +197,10 @@ everything `act` is doing.
 
 The jobs you can (and should) run locally are `lint`, `build`, `analyse`, and
 `test`. The `analyse` and `test` jobs depend on the output from the `build`
-job.
+job. To keep the output from the build job, you can add the `-b` flag to `act`,
+or you may simply use the task runner to build.
 
-Also note that some jobs deal with uploading and downloading artifacts, so they
-may persist across jobs in the github actions workflow. These actions will fail
-locally using `act`, so it's best to comment them out if you for example intend
-to run the build, analyse, and test jobs.
-
-> TODO: Improve the user friendliness of these operations. https://github.com/nicholaschiasson/ngx_upstream_jdomain/issues/17
-
-### Dumb Tips & Known Issues
-
-#### Hold Onto That Binary
-
-In some cases, you can find yourself struggling with fixing tests and running
-them many times over and over again without needing to make further changes to
-the C code. The fact that the `Test` job builds nginx each time also makes
-things a little more bothersome.
-
-To alleviate this extra suffering, what I do is to:
-
-1. First run `act` once with an extra flag `-b` to bind the project directory
-	as amounted volume. You will then have a git ignored `./bin/` directory at
-	the project root.
-2. Then comment out the `Build` step inside `./.github/workflows/main.yml` and
-	and continue to run `act` as usual to reuse the nginx binary you had
-	previously built.
-
-This is obviously not really a great long term solution.
-
-[This issue](https://github.com/nicholaschiasson/ngx_upstream_jdomain/issues/17)
-exists to track improvements to local development tooling. Ideally, there will
-soon be a setup to run jobs in isolation reliably and simplistically.
+### Known Issues
 
 #### The Damn Tests Sometimes Hang...
 
