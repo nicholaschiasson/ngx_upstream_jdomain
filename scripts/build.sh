@@ -2,6 +2,8 @@
 
 set -ex
 
+source .env
+
 BIN_DIR=${GITHUB_WORKSPACE}/bin
 
 echo $BIN_DIR
@@ -14,7 +16,7 @@ pushd ${BIN_DIR}/workdir
 
 NGINX_PACKAGE=/tmp/nginx.tar.gz
 
-curl -L http://nginx.org/download/nginx-${INPUT_NGINXVERSION}.tar.gz -o ${NGINX_PACKAGE}
+curl -L http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o ${NGINX_PACKAGE}
 
 tar zxvf ${NGINX_PACKAGE} --strip-components 1
 

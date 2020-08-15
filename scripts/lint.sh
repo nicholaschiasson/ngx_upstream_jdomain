@@ -2,6 +2,8 @@
 
 set -ex
 
+source .env
+
 find src -name *.c | while read f
 do
 	echo ${f}

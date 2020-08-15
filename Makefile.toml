@@ -1,0 +1,88 @@
+[tasks.docker]
+command = "docker"
+args = [
+	"build",
+	"-f",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox/Dockerfile",
+	"-t",
+	"act-github-actions-nginx-module-toolbox:latest",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox"
+]
+
+[tasks.clean]
+dependencies = ["docker"]
+script_runner = "@shell"
+command = "rm"
+args = ["-rf", "bin"]
+
+[tasks.format]
+clear = true
+dependencies = ["docker"]
+script_runner = "@shell"
+script = [
+	'''
+	docker \
+		run \
+		--rm \
+		-itv ${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace \
+		act-github-actions-nginx-module-toolbox \
+		clang-format \
+		-i \
+		src/*.c
+	'''
+]
+
+[tasks.build]
+clear = true
+dependencies = ["clean", "format"]
+command = "docker"
+args = [
+	"run",
+	"--rm",
+	"-itv",
+	"${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace",
+	"act-github-actions-nginx-module-toolbox",
+	"bash",
+	"./scripts/build.sh"
+]
+
+[tasks.conditional-build]
+dependencies = ["docker"]
+condition = { files_not_exist = [
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/sbin/nginx",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/core",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/event",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/event/modules",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/os/unix",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/objs",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/http",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/http/modules"
+]}
+run_task = "build"
+
+[tasks.analyse]
+dependencies = ["conditional-build"]
+command = "docker"
+args = [
+	"run",
+	"--rm",
+	"-itv",
+	"${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace",
+	"act-github-actions-nginx-module-toolbox",
+	"bash",
+	"./scripts/analyse.sh"
+]
+
+[tasks.test]
+clear = true
+dependencies = ["conditional-build"]
+command = "docker"
+args = [
+	"run",
+	"--rm",
+	"-itv",
+	"${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace",
+	"act-github-actions-nginx-module-toolbox",
+	"bash",
+	"./scripts/test.sh"
+]
