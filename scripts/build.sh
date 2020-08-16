@@ -43,7 +43,8 @@ do
 		--add${TYPE}module=${GITHUB_WORKSPACE}
 
 	make
-	make install
+
+	mv objs ${BIN_DIR}
 
 	popd
 done

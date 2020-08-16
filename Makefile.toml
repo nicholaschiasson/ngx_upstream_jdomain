@@ -49,14 +49,23 @@ args = [
 [tasks.conditional-build]
 dependencies = ["docker"]
 condition = { files_not_exist = [
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/sbin/nginx",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/core",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/event",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/event/modules",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/os/unix",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/objs",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/http",
-	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/workdir/src/http/modules"
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/nginx",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/ngx_http_upstream_jdomain_module.so",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/src/core",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/src/event",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/src/event/modules",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/src/os/unix",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/objs",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/src/http",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/dynamic/src/http/modules",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/nginx",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/src/core",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/src/event",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/src/event/modules",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/src/os/unix",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/objs",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/src/http",
+	"${CARGO_MAKE_WORKING_DIRECTORY}/bin/static/src/http/modules"
 ]}
 run_task = "build"
 
