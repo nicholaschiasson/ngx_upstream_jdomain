@@ -339,7 +339,6 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 			    default_port > 65535) {
 				goto invalid;
 			}
-
 			continue;
 		}
 
@@ -352,7 +351,6 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 			if (interval == (time_t)NGX_ERROR) {
 				goto invalid;
 			}
-
 			continue;
 		}
 
@@ -362,13 +360,11 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 			if (max_ips == NGX_ERROR || max_ips < 1) {
 				goto invalid;
 			}
-
 			continue;
 		}
 
-		if (ngx_strncmp(value[i].data, "retry_off", 9) == 0) {
+		if (value[i].len == 9 && ngx_strncmp(value[i].data, "retry_off", 9) == 0) {
 			retry = 0;
-
 			continue;
 		}
 
@@ -392,13 +388,11 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 				                                  NGX_SOCKADDR_STRLEN,
 				                                  1);
 			}
-
 			continue;
 		}
 
-		if (ngx_strncmp(value[i].data, "strict", 6) == 0) {
+		if (value[i].len == 6 && ngx_strncmp(value[i].data, "strict", 6) == 0) {
 			fallback_strict = 1;
-
 			continue;
 		}
 
