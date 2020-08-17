@@ -4,13 +4,13 @@ set -ex
 
 source .env
 
-BIN_DIR=${GITHUB_WORKSPACE}/bin
+SRC_DIR=/src/nginx
 
 clang-tidy src/*.c -- \
-	-I${BIN_DIR}/workdir/src/core \
-	-I${BIN_DIR}/workdir/src/event \
-	-I${BIN_DIR}/workdir/src/event/modules \
-	-I${BIN_DIR}/workdir/src/os/unix \
-	-I${BIN_DIR}/static \
-	-I${BIN_DIR}/workdir/src/http \
-	-I${BIN_DIR}/workdir/src/http/modules
+	-I${SRC_DIR}/src/core \
+	-I${SRC_DIR}/src/event \
+	-I${SRC_DIR}/src/event/modules \
+	-I${SRC_DIR}/src/os/unix \
+	-I${SRC_DIR}/objs \
+	-I${SRC_DIR}/src/http \
+	-I${SRC_DIR}/src/http/modules

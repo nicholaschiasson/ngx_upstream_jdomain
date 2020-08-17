@@ -4,22 +4,16 @@ set -ex
 
 source .env
 
-NGINX_PACKAGE=/tmp/nginx.tar.gz
-
-curl -L http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o ${NGINX_PACKAGE}
-
 for type in dynamic static
 do
+	SRC_DIR=/src/nginx
 	BIN_DIR=${GITHUB_WORKSPACE}/bin/${type}
-	WORK_DIR=${GITHUB_WORKSPACE}/bin/workdir
 	TYPE=${type/static/-}
 	TYPE=${TYPE/dynamic/-dynamic-}
 
+	mkdir -p ${BIN_DIR%/*}
 	rm -rf ${BIN_DIR}
-	mkdir -p ${WORK_DIR}
-	pushd ${WORK_DIR}
-
-	tar zxvf ${NGINX_PACKAGE} --strip-components 1
+	pushd ${SRC_DIR}
 
 	./configure \
 		--prefix=${BIN_DIR} \

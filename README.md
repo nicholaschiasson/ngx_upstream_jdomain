@@ -196,9 +196,9 @@ Also note that `-v` is used to enable verbose mode to give more visibility on
 everything `act` is doing.
 
 The jobs you can (and should) run locally are `lint`, `build`, `analyse`, and
-`test`. The `analyse` and `test` jobs depend on the output from the `build`
-job. To keep the output from the build job, you can add the `-b` flag to `act`,
-or you may simply use the task runner to build.
+`test`. The `test` job depends on the output from the `build` job. To keep the
+output from the build job, you can add the `-b` flag to `act`, or you may
+simply use the task runner to build.
 
 ### Known Issues
 
