@@ -17,9 +17,7 @@ export TEST_NGINX_USE_VALGRIND=1
 DYNAMIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/dynamic
 STATIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/static
 
-ls -la ${STATIC_BIN_DIR}
-
-ls -la ${DYNAMIC_BIN_DIR
+chmod 744 ${DYNAMIC_BIN_DIR}/nginx ${STATIC_BIN_DIR}/nginx
 
 # We run prove twice: once with statically linked module and once with dynamically linked module.
 export PATH=${STATIC_BIN_DIR}:${OLD_PATH}
