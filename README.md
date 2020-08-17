@@ -132,7 +132,7 @@ recommended to simply use `makers`.
 Also note that for simplicity's sake, the task runner uses docker to run all
 tasks. This means the build binary is not targetting your host platform.
 
-### Default Task
+#### Default Task
 
 To add value, the default task (ie. simply running `makers` alone) will begin
 an interactive bash session inside the docker container used for this project.
