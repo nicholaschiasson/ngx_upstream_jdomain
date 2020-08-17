@@ -1,9 +1,4 @@
 name: Nginx Module Toolbox
-inputs:
-  nginxVersion:
-    description: Version of nginx source to fetch.
-    required: false
-    default: 1.16.1
 runs:
   using: docker
   image: Dockerfile

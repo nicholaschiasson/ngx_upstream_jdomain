@@ -1,50 +1,100 @@
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
-  test:
+  analyse:
     runs-on: ubuntu-latest
-    name: Test
+    name: Analyse
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Analyse
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./scripts/analyse.sh
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./scripts/lint.sh
+  build:
+    runs-on: ubuntu-latest
+    name: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./build.sh
+          entrypoint: ./scripts/build.sh
+      - name: Upload Artifacts
+        if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: nginx
+          path: bin
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download Artifacts
+        if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
+        uses: actions/download-artifact@v2
+        with:
+          name: nginx
+          path: bin
       - name: Test
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./test.sh
+          entrypoint: ./scripts/test.sh
       - name: LeakCheck
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: ./leakcheck.sh
+          entrypoint: ./scripts/leakcheck.sh
   tag:
     runs-on: ubuntu-latest
     name: Tag
-    needs: test
-    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: [analyse, build, lint, test]
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' && (success() || failure()) }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check semver bump
+        id: check-semver
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" =~ ^Merge\ pull\ request\ #[0-9]+\ from\ [^/]+/patch/.+$ ]]; then
+            echo ::set-output name=semver::patch
+          elif [[ "${{ github.event.head_commit.message }}" =~ ^Merge\ pull\ request\ #[0-9]+\ from\ [^/]+/major/.+$ ]]; then
+            echo ::set-output name=semver::major
+          else
+            echo ::set-output name=semver::minor
+          fi
       - name: Bump major version and push tag
-        if: ${{ startsWith(github.head_ref, 'refs/heads/major/') }}
+        if: ${{ steps.check-semver.outputs.semver == 'major' }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: major
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump minor version and push tag
-        if: ${{ startsWith(github.head_ref, 'refs/heads/minor/') }}
+        if: ${{ steps.check-semver.outputs.semver == 'minor' }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: minor
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump patch version and push tag
-        if: ${{ startsWith(github.head_ref, 'refs/heads/patch/') }}
+        if: ${{ steps.check-semver.outputs.semver == 'patch' }}
         uses: anothrNick/github-tag-action@1.17.2
         env:
           DEFAULT_BUMP: patch
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Bump version and push tag
-        if: ${{ !(startsWith(github.head_ref, 'refs/heads/major/') || startsWith(github.head_ref, 'refs/heads/minor/') || startsWith(github.head_ref, 'refs/heads/patch/')) }}
-        uses: anothrNick/github-tag-action@1.17.2
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
