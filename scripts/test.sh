@@ -8,7 +8,7 @@ export OLD_PATH=${PATH}
 
 echo "nameserver 127.0.0.88" > /etc/resolv.conf
 
-unbound-control -c /tmp/unbound.conf start
+unbound-control -c /etc/unbound.conf start
 unbound-control verbosity 3
 
 export TEST_NGINX_USE_VALGRIND=1

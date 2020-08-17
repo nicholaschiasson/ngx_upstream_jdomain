@@ -5,6 +5,16 @@ on:
   pull_request:
 
 jobs:
+  analyse:
+    runs-on: ubuntu-latest
+    name: Analyse
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Analyse
+        uses: ./.github/actions/nginx-module-toolbox
+        with:
+          entrypoint: ./scripts/analyse.sh
   lint:
     runs-on: ubuntu-latest
     name: Lint
@@ -31,23 +41,6 @@ jobs:
         with:
           name: nginx
           path: bin
-  analyse:
-    runs-on: ubuntu-latest
-    name: Analyse
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Download Artifacts
-        if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
-        uses: actions/download-artifact@v2
-        with:
-          name: nginx
-          path: bin
-      - name: Analyse
-        uses: ./.github/actions/nginx-module-toolbox
-        with:
-          entrypoint: ./scripts/analyse.sh
   test:
     runs-on: ubuntu-latest
     name: Test
@@ -68,7 +61,7 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     name: Tag
-    needs: [analyse, test]
+    needs: [analyse, build, lint, test]
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' && (success() || failure()) }}
     steps:
       - name: Checkout
