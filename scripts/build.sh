@@ -4,8 +4,6 @@ set -ex
 
 source .env
 
-NGINX_PACKAGE=/tmp/nginx.tar.gz
-
 for type in dynamic static
 do
 	SRC_DIR=/src/nginx
