@@ -202,15 +202,10 @@ simply use the task runner to build.
 
 ### Known Issues
 
-#### The Damn Tests Sometimes Hang...
+At the moment? None! 🎉
 
-This is still sort of mysterious... From time to time, the tests simply don't
-run. It's unclear what the real cause is, so more investigation is required,
-but there's strong indication that it's something to do with perl, prove, or
-the Test::Nginx framework.
-
-[This issue](https://github.com/nicholaschiasson/ngx_upstream_jdomain/issues/26)
-exists to track the investigation and solution of this bug.
+If you discover a bug or have a question to raise, please
+[open an issue](https://github.com/nicholaschiasson/ngx_upstream_jdomain/issues/new/choose).
 
 ## Original Author
 
