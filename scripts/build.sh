@@ -34,7 +34,9 @@ do
 		--without-http_empty_gif_module \
 		--without-http_browser_module \
 		--without-http_upstream_ip_hash_module \
-		--add${TYPE}module=${GITHUB_WORKSPACE}
+		--add${TYPE}module=${GITHUB_WORKSPACE} \
+		# --with-http_ssl_module \
+		# --with-openssl=/src/openssl
 
 	make
 
