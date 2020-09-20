@@ -18,6 +18,7 @@ do
 	./configure \
 		--prefix=${BIN_DIR} \
 		--with-debug \
+		--with-http_ssl_module \
 		--without-http_charset_module \
 		--without-http_userid_module \
 		--without-http_auth_basic_module \
@@ -35,7 +36,6 @@ do
 		--without-http_browser_module \
 		--without-http_upstream_ip_hash_module \
 		--add${TYPE}module=${GITHUB_WORKSPACE} \
-		# --with-http_ssl_module \
 		# --with-openssl=/src/openssl
 
 	make
