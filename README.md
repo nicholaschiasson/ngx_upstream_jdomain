@@ -86,11 +86,11 @@ server {
 ## Synopsis
 
 ```
-Syntax: jdomain <domain-name> [port=80] [max_ips=20] [interval=1] [retry_off] [fallback= [strict]]
+Syntax: jdomain <domain-name> [port=80] [max_ips=8] [interval=1] [retry_off] [fallback= [strict]]
 Context: upstream
 Attributes:
 	port:       Backend's listening port.                                      (Default: 80)
-	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 20)
+	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 8)
 	interval:   How many seconds to resolve domain name.                       (Default: 1)
 	retry_off:  Do not retry if one IP fails.
 	fallback:   Optional IP and port to use if <domain-name> resolves no IPs,

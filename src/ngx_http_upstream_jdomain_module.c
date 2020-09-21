@@ -194,35 +194,24 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t* ctx)
 		}
 	}
 
-	jcf->state.data.sockaddrs->nelts = 0;
-	jcf->state.data.addrs->nelts = 0;
+	sockaddr = jcf->state.data.sockaddrs->elts;
+	name = jcf->state.data.names->elts;
+	addr = jcf->state.data.addrs->elts;
 	jcf->state.data.server->naddrs = 0;
+	jcf->state.data.addrs->nelts = 0;
+	jcf->state.data.names->nelts = 0;
+	jcf->state.data.sockaddrs->nelts = 0;
+	ngx_memzero(addr, sizeof(ngx_addr_t) * jcf->conf.max_ips);
+	ngx_memzero(name, NGX_SOCKADDR_STRLEN * jcf->conf.max_ips);
+	ngx_memzero(sockaddr, NGX_SOCKADDRLEN * jcf->conf.max_ips);
 	for (i = 0; i < ngx_min(ctx->naddrs, jcf->conf.max_ips); i++) {
-		sockaddr = ngx_array_push(jcf->state.data.sockaddrs);
-		if (!sockaddr) {
-			ngx_log_error(NGX_LOG_ERR, ctx->resolver->log, 0, "ngx_http_upstream_jdomain_module: ngx_array_push sockaddr fail");
-			goto end;
-		}
-		ngx_memzero(sockaddr, NGX_SOCKADDRLEN);
-		name = ngx_array_push(jcf->state.data.names);
-		if (!name) {
-			ngx_log_error(NGX_LOG_ERR, ctx->resolver->log, 0, "ngx_http_upstream_jdomain_module: ngx_array_push name fail");
-			goto end;
-		}
-		ngx_memzero(name, NGX_SOCKADDR_STRLEN);
-		addr = ngx_array_push(jcf->state.data.addrs);
-		if (!addr) {
-			ngx_log_error(NGX_LOG_ERR, ctx->resolver->log, 0, "ngx_http_upstream_jdomain_module: ngx_array_push addr fail");
-			goto end;
-		}
-		ngx_memzero(addr, sizeof(ngx_addr_t));
-		ngx_memcpy(sockaddr, ctx->addrs[i].sockaddr, ctx->addrs[i].socklen);
-		ngx_inet_set_port(sockaddr, jcf->conf.port);
-		ngx_memcpy(name, ctx->addrs[i].name.data, ctx->addrs[i].name.len);
-		addr->sockaddr = sockaddr;
-		addr->socklen = ctx->addrs[i].socklen;
-		addr->name.data = name;
-		addr->name.len = ctx->addrs[i].name.len;
+		ngx_memcpy(sockaddr + (i * NGX_SOCKADDRLEN), ctx->addrs[i].sockaddr, ctx->addrs[i].socklen);
+		ngx_inet_set_port(sockaddr + (i * NGX_SOCKADDRLEN), jcf->conf.port);
+		ngx_memcpy(name + (i * NGX_SOCKADDR_STRLEN), ctx->addrs[i].name.data, ctx->addrs[i].name.len);
+		addr[i].sockaddr = sockaddr + (i * NGX_SOCKADDRLEN);
+		addr[i].socklen = ctx->addrs[i].socklen;
+		addr[i].name.data = name + (i * NGX_SOCKADDR_STRLEN);
+		addr[i].name.len = ctx->addrs[i].name.len;
 		jcf->state.data.server->down = 0;
 		jcf->state.data.server->naddrs++;
 	}
@@ -245,7 +234,7 @@ ngx_http_upstream_jdomain_create_conf(ngx_conf_t* cf)
 	}
 
 	conf->conf.interval = 1;
-	conf->conf.max_ips = 20;
+	conf->conf.max_ips = 8;
 	conf->conf.port = 80;
 	conf->conf.retry = 1;
 
@@ -317,6 +306,7 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 
 	value = cf->args->elts;
 
+	// Parse arguments
 	for (i = 2; i < cf->args->nelts; i++) {
 		if (ngx_strncmp(value[i].data, "port=", 5) == 0) {
 			port = ngx_atoi(value[i].data + 5, value[i].len - 5);
@@ -361,9 +351,25 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	jcf->conf.domain.data = value[1].data;
 	jcf->conf.domain.len = value[1].len;
 
-	ngx_memzero(&u, sizeof(ngx_url_t));
-	u.url = value[1];
-	u.default_port = jcf->conf.port;
+	// Initialize state data
+	sockaddr = ngx_array_push_n(jcf->state.data.sockaddrs, jcf->conf.max_ips);
+	if (!sockaddr) {
+		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push sockaddr fail");
+		goto failure;
+	}
+	name = ngx_array_push_n(jcf->state.data.names, jcf->conf.max_ips);
+	if (!name) {
+		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push name fail");
+		goto failure;
+	}
+	addr = ngx_array_push_n(jcf->state.data.addrs, jcf->conf.max_ips);
+	if (!addr) {
+		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push addr fail");
+		goto failure;
+	}
+	ngx_memzero(sockaddr, NGX_SOCKADDRLEN * jcf->conf.max_ips);
+	ngx_memzero(name, NGX_SOCKADDR_STRLEN * jcf->conf.max_ips);
+	ngx_memzero(addr, sizeof(ngx_addr_t) * jcf->conf.max_ips);
 
 	if (!uscf->servers) {
 		uscf->servers = ngx_array_create(cf->pool, 1, sizeof(ngx_http_upstream_server_t));
@@ -372,7 +378,6 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 			goto failure;
 		}
 	}
-
 	jcf->state.data.server = ngx_array_push(uscf->servers);
 	if (!jcf->state.data.server) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push server fail");
@@ -380,8 +385,16 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	}
 	ngx_memzero(jcf->state.data.server, sizeof(ngx_http_upstream_server_t));
 	jcf->state.data.server->addrs = jcf->state.data.addrs->elts;
+	jcf->state.data.server->fail_timeout = 10; // default
+	jcf->state.data.server->max_fails = 1;     // default
 	jcf->state.data.server->name = jcf->conf.domain;
+	jcf->state.data.server->weight = 1; // default
 
+	ngx_memzero(&u, sizeof(ngx_url_t));
+	u.url = value[1];
+	u.default_port = jcf->conf.port;
+
+	// Initial domain name resolution
 	if (ngx_parse_url(pool, &u) != NGX_OK) {
 		if (uscf->servers->nelts < 2) {
 			ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
@@ -393,30 +406,12 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	}
 
 	for (i = 0; i < ngx_min(u.naddrs, jcf->conf.max_ips); i++) {
-		sockaddr = ngx_array_push(jcf->state.data.sockaddrs);
-		if (!sockaddr) {
-			ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push sockaddr fail");
-			goto failure;
-		}
-		ngx_memzero(sockaddr, NGX_SOCKADDRLEN);
-		name = ngx_array_push(jcf->state.data.names);
-		if (!name) {
-			ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push name fail");
-			goto failure;
-		}
-		ngx_memzero(name, NGX_SOCKADDR_STRLEN);
-		addr = ngx_array_push(jcf->state.data.addrs);
-		if (!addr) {
-			ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push addr fail");
-			goto failure;
-		}
-		ngx_memzero(addr, sizeof(ngx_addr_t));
-		ngx_memcpy(sockaddr, u.addrs[i].sockaddr, u.addrs[i].socklen);
-		ngx_memcpy(name, u.addrs[i].name.data, u.addrs[i].name.len);
-		addr->sockaddr = sockaddr;
-		addr->socklen = u.addrs[i].socklen;
-		addr->name.data = name;
-		addr->name.len = u.addrs[i].name.len;
+		ngx_memcpy(sockaddr + (i * NGX_SOCKADDRLEN), u.addrs[i].sockaddr, u.addrs[i].socklen);
+		ngx_memcpy(name + (i * NGX_SOCKADDR_STRLEN), u.addrs[i].name.data, u.addrs[i].name.len);
+		addr[i].sockaddr = sockaddr + (i * NGX_SOCKADDRLEN);
+		addr[i].socklen = u.addrs[i].socklen;
+		addr[i].name.data = name + (i * NGX_SOCKADDR_STRLEN);
+		addr[i].name.len = u.addrs[i].name.len;
 		jcf->state.data.server->naddrs++;
 	}
 	jcf->state.resolve.access = ngx_time();
