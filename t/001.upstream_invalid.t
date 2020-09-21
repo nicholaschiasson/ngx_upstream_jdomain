@@ -11,7 +11,7 @@ __DATA__
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3;
+	jdomain example.com port=8000 fallback=127.0.0.3;
 }
 server {
 	listen 127.0.0.3:8000;
@@ -33,7 +33,7 @@ host not found in upstream "example.com", using fallback address "127.0.0.3:8000
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3;
+	jdomain example.com port=8000 fallback=127.0.0.3;
 }
 server {
 	listen 127.0.0.3:8000 ssl;
@@ -57,7 +57,7 @@ host not found in upstream "example.com", using fallback address "127.0.0.3:8000
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345;
 }
 server {
 	listen 127.0.0.3:12345;
@@ -79,7 +79,7 @@ host not found in upstream "example.com", using fallback address "127.0.0.3:1234
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345;
 }
 server {
 	listen 127.0.0.3:12345 ssl;
@@ -102,7 +102,7 @@ host not found in upstream "example.com", using fallback address "127.0.0.3:1234
 `echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345;
 }
 --- config
 location = / {
@@ -118,7 +118,7 @@ host not found in upstream "example.com", using fallback address "127.0.0.3:1234
 `echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345;
 }
 --- config
 location = / {
@@ -137,21 +137,7 @@ CAUSES THE FRAMEWORK TO HANG IF THIS TEST GOES FIRST!
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off;
-}
---- config
---- must_die
---- error_log
-host not found in upstream "example.com"
-=== TEST 8: Invalid SSL upstream without fallback
-THIS TEST MUST NOT BE FIRST! THERE SEEMS TO BE A BUG WITH 'must_die' WHICH
-CAUSES THE FRAMEWORK TO HANG IF THIS TEST GOES FIRST!
---- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
---- http_config
-resolver 127.0.0.88;
-upstream upstream_test {
-	jdomain example.com port=8000 retry_off;
+	jdomain example.com port=8000;
 }
 --- config
 --- must_die
