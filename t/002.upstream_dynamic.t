@@ -24,7 +24,7 @@ __DATA__
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off;
+	jdomain example.com port=8000;
 }
 server {
 	listen 127.0.0.2:8000;
@@ -50,7 +50,7 @@ location = / {
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off;
+	jdomain example.com port=8000;
 }
 server {
 	listen 127.0.0.2:8000;
@@ -72,7 +72,7 @@ location = / {
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3;
+	jdomain example.com port=8000 fallback=127.0.0.3;
 }
 server {
 	listen 127.0.0.3:8000;
@@ -98,7 +98,7 @@ location = / {
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345;
 }
 server {
 	listen 127.0.0.3:12345;
@@ -124,7 +124,7 @@ location = / {
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345 ;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345 ;
 }
 server {
 	listen 127.0.0.3:12345;
@@ -150,7 +150,7 @@ location = / {
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345 strict;
+	jdomain example.com port=8000 fallback=127.0.0.3:12345 strict;
 }
 server {
 	listen 127.0.0.3:12345;

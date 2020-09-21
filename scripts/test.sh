@@ -6,6 +6,9 @@ source .env
 
 export OLD_PATH=${PATH}
 
+mkdir -p /etc/ssl/nginx/test
+openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/nginx/test/key.pem -out /etc/ssl/nginx/test/cert.pem -days 1 -nodes -subj "/C=/ST=/L=/O=/OU=/CN=example.com"
+
 echo "nameserver 127.0.0.88" > /etc/resolv.conf
 
 unbound-control -c /etc/unbound.conf start
