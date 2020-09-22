@@ -171,14 +171,6 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t* ctx)
 
 	jcf = (ngx_http_upstream_jdomain_srv_conf_t*)ctx->data;
 
-	ngx_log_debug3(NGX_LOG_DEBUG_CORE,
-	               ctx->resolver->log,
-	               0,
-	               "ngx_http_upstream_jdomain_module: \"%V\" resolved state (%i: %s)",
-	               &ctx->name,
-	               ctx->state,
-	               ngx_resolver_strerror(ctx->state));
-
 	if (ctx->state || ctx->naddrs == 0) {
 		jcf->state.data.server->down = jcf->parent->servers->nelts > 1 && (jcf->conf.strict || ctx->state == NGX_RESOLVE_FORMERR ||
 		                                                                   ctx->state == NGX_RESOLVE_NXDOMAIN);
@@ -287,6 +279,7 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	              NGX_HTTP_UPSTREAM_MAX_CONNS;
 
 	jcf = ngx_http_conf_upstream_srv_conf(uscf, ngx_http_upstream_jdomain_module);
+	jcf->parent = uscf;
 
 	errstr = ngx_pcalloc(cf->pool, NGX_MAX_CONF_ERRSTR);
 	if (!errstr) {
@@ -396,13 +389,11 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 
 	// Initial domain name resolution
 	if (ngx_parse_url(pool, &u) != NGX_OK) {
+		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
 		if (uscf->servers->nelts < 2) {
-			ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
 			goto failure;
 		}
-		ngx_conf_log_error(
-		  NGX_LOG_WARN, cf, 0, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
-		jcf->state.data.server->down = 1;
+		ngx_conf_log_error(NGX_LOG_WARN, cf, 0, (const char*)errstr);
 	}
 
 	for (i = 0; i < ngx_min(u.naddrs, jcf->conf.max_ips); i++) {
@@ -413,6 +404,11 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 		addr[i].name.data = name + (i * NGX_SOCKADDR_STRLEN);
 		addr[i].name.len = u.addrs[i].name.len;
 		jcf->state.data.server->naddrs++;
+	}
+	// This is a hack to allow nginx to load without complaint in case there are other server directives in the upstream block
+	if (jcf->state.data.server->naddrs < 1) {
+		jcf->state.data.server->down = 1;
+		jcf->state.data.server->naddrs = 1;
 	}
 	jcf->state.resolve.access = ngx_time();
 
