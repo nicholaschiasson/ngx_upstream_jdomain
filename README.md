@@ -11,6 +11,13 @@ Instead, the DNS resolution needs to be prompted by a request for the given
 upstream. If nginx serves a connection bound for a jdomain upstream, and the
 configured `interval` has elapsed, then the module will perform a DNS lookup.
 
+The module is compatible with other `upstream` scope directives. This means you
+may populate an `upstream` block with multiple `jdomain` directives, multiple
+`server` directives, `keepalive`, load balancing directives, etc. Note that
+unless another load balancing method is specified in the `upstream` block, this
+module makes use of the default round robin load balancing algorithm built into
+nginx core.
+
 **Important Note**: Due to the asynchronous nature of this module and the fact
 that its DNS resolution is triggered by incoming requests, the request that
 prompts a lookup will actually still be forwarded to the upstream that was
@@ -27,7 +34,7 @@ several features ahead.
 ## Installation
 
 [Build nginx](http://nginx.org/en/docs/configure.html) with this repository as
-a static module.
+a static or dynamie module.
 
 ```shell
 ./configure --add-module=/path/to/this/directory
@@ -50,54 +57,41 @@ upstream backend_02 {
 	jdomain example.com port=8080;
 }
 
-# Upstream with a fallback IP address to use in case of host not found or
-# format errors on DNS resolution.
-# Fallback defaults to same port used for the domain (which defaults to 80).
+# Upstream with a backup server to use in case of host not found or format
+# errors on DNS resolution.
 upstream backend_03 {
-	jdomain example.com fallback=127.0.0.2;
+	server 127.0.0.2 backup;
+	jdomain example.com;
 }
 
-# Upstream with fallback IP defaulting to port specified by port attribute.
-upstream backend_04  {
-	jdomain example.com port=8080 fallback=127.0.0.2;
-}
-
-# Upstream with fallback IP specifying its own port to use.
-upstream backend_05 {
-	jdomain example.com fallback=127.0.0.2:8080;
-}
-
-# Upstream which will use fallback for any and all DNS resolution errors.
-upstream backend_06 {
-	jdomain example.come fallback=127.0.0.2 strict;
+# Upstream which will use backup for any and all DNS resolution errors.
+upstream backend_04 {
+	server 127.0.0.2 backup;
+	jdomain example.com strict;
 }
 
 server {
 	listen 127.0.0.2:80;
 	return 502 'An error.';
 }
-
-server {
-	listen 127.0.0.2:8080;
-	return 502 'A different error.';
-}
 ```
 
 ## Synopsis
 
 ```
-Syntax: jdomain <domain-name> [port=80] [max_ips=8] [interval=1] [retry_off] [fallback= [strict]]
+Syntax: jdomain <domain-name> [port=80] [max_ips=8] [interval=1] [retry_off] [strict]
 Context: upstream
 Attributes:
 	port:       Backend's listening port.                                      (Default: 80)
 	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 8)
 	interval:   How many seconds to resolve domain name.                       (Default: 1)
 	retry_off:  Do not retry if one IP fails.
-	fallback:   Optional IP and port to use if <domain-name> resolves no IPs,
-	            resolves with a host not found error, or a format error.
-	strict:     Forces use of fallback even in case of other resolution
-	            errors, such as timeouts, DNS server failures, connection
-	            refusals, etc.
+	strict:     Require the DNS resolution to succeed and return addresses,
+	            otherwise marks the underlying server and peers as down and
+	            forces use of other servers in the upstream block if there
+	            are any present. A failed resolution can be a timeout, DNS
+	            server failure, connection refusals, response with no
+	            addresses, etc.
 ```
 
 See https://www.nginx.com/resources/wiki/modules/domain_resolve/ for details.
