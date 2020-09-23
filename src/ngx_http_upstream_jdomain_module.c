@@ -1,8 +1,3 @@
-/*
- * this module (C) wudaike
- * this module (C) Baidu, Inc.
- */
-
 #include <nginx.h>
 #include <ngx_config.h>
 #include <ngx_core.h>
@@ -257,9 +252,9 @@ end:
 	jcf->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
 }
 
-/**
+/*
  * Called before the main entry point. This function initializes the module state data.
- **/
+ */
 static void*
 ngx_http_upstream_jdomain_create_conf(ngx_conf_t* cf)
 {
@@ -304,9 +299,9 @@ ngx_http_upstream_jdomain_create_conf(ngx_conf_t* cf)
 	return conf;
 }
 
-/**
+/*
  * Module entrypoint. This function performs initial (blocking) domain name resolution and finishes initializing state data.
- **/
+ */
 static char*
 ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 {
@@ -354,7 +349,7 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 
 	value = cf->args->elts;
 
-	// Parse arguments
+	/* Parse arguments */
 	for (i = 2; i < cf->args->nelts; i++) {
 		if (ngx_strncmp(value[i].data, "interval=", 9) == 0) {
 			s.len = value[i].len - 9;
@@ -399,7 +394,7 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	jcf->conf.domain.data = value[1].data;
 	jcf->conf.domain.len = value[1].len;
 
-	// Initialize state data
+	/* Initialize state data */
 	sockaddr = ngx_array_push_n(jcf->state.data.sockaddrs, jcf->conf.max_ips);
 	if (!sockaddr) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_push sockaddr fail");
@@ -439,16 +434,16 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	}
 	ngx_memzero(jcf->state.data.server, sizeof(ngx_http_upstream_server_t));
 	jcf->state.data.server->addrs = jcf->state.data.addrs->elts;
-	jcf->state.data.server->fail_timeout = 10; // default
-	jcf->state.data.server->max_fails = 1;     // default
+	jcf->state.data.server->fail_timeout = 10; /* server default */
+	jcf->state.data.server->max_fails = 1;     /* server default */
 	jcf->state.data.server->name = jcf->conf.domain;
-	jcf->state.data.server->weight = 1; // default
+	jcf->state.data.server->weight = 1; /* server default */
 
 	ngx_memzero(&u, sizeof(ngx_url_t));
 	u.url = value[1];
 	u.default_port = jcf->conf.port;
 
-	// Initial domain name resolution
+	/* Initial domain name resolution */
 	if (ngx_parse_url(pool, &u) != NGX_OK) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
 		if (uscf->servers->nelts < 2) {
@@ -468,10 +463,10 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	}
 	jcf->state.data.naddrs = jcf->state.data.server->naddrs;
 
-	// This is a hack to allow nginx to load without complaint in case there are other server directives in the upstream block
+	/* This is a hack to allow nginx to load without complaint in case there are other server directives in the upstream block */
 	jcf->state.data.server->down = jcf->state.data.server->naddrs < 1;
 
-	// This is a hack to guarantee the creation of enough round robin peers up front so we can minimize memory manipulation
+	/* This is a hack to guarantee the creation of enough round robin peers up front so we can minimize memory manipulation */
 	jcf->state.data.server->naddrs = jcf->conf.max_ips;
 
 	jcf->state.resolve.access = ngx_time();
