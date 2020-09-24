@@ -315,7 +315,7 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 
 	ngx_pool_t* pool;
 	ngx_str_t *value, s;
-	ngx_int_t port;
+	ngx_int_t num;
 	ngx_url_t u;
 	ngx_uint_t i;
 	u_char* errstr;
@@ -355,26 +355,27 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 			s.len = value[i].len - 9;
 			s.data = &value[i].data[9];
 			jcf->conf.interval = ngx_parse_time(&s, 1);
-			if (jcf->conf.interval == (time_t)NGX_ERROR) {
+			if (jcf->conf.interval < 1) {
 				goto invalid;
 			}
 			continue;
 		}
 
 		if (ngx_strncmp(value[i].data, "max_ips=", 8) == 0) {
-			jcf->conf.max_ips = ngx_atoi(value[i].data + 8, value[i].len - 8);
-			if (jcf->conf.max_ips < 1) {
+			num = ngx_atoi(value[i].data + 8, value[i].len - 8);
+			if (num < 1) {
 				goto invalid;
 			}
+			jcf->conf.max_ips = num;
 			continue;
 		}
 
 		if (ngx_strncmp(value[i].data, "port=", 5) == 0) {
-			port = ngx_atoi(value[i].data + 5, value[i].len - 5);
-			if (port < 1 || port != (in_port_t)port) {
+			num = ngx_atoi(value[i].data + 5, value[i].len - 5);
+			if (num < 1 || num != (in_port_t)num) {
 				goto invalid;
 			}
-			jcf->conf.port = port;
+			jcf->conf.port = num;
 			continue;
 		}
 
