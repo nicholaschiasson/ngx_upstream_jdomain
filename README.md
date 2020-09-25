@@ -16,9 +16,15 @@ may populate an `upstream` block with multiple `jdomain` directives, multiple
 `server` directives, `keepalive`, load balancing directives, etc. Note that
 unless another load balancing method is specified in the `upstream` block, this
 module makes use of the default round robin load balancing algorithm built into
-nginx core.
+nginx core. Should an alternate load balancing algorithm be specified, **it
+must come _before_ the jdomain directive in the upstream block!** If this is
+not followed, nginx **_will_** crash during runtime! This is because many other
+load balancing modules explicitly extend the built in round robin, and thus end
+up clobbering the jdomain initialization handlers, since jdomain is technically
+a load balancer module as well. While this may not be the case with all load
+balancer modules, it's better to stay on the safe side and place jdomain after.
 
-**Important Note**: Due to the asynchronous nature of this module and the fact
+**Important Note**: Due to the non blocking nature of this module and the fact
 that its DNS resolution is triggered by incoming requests, the request that
 prompts a lookup will actually still be forwarded to the upstream that was
 resolved and cached before the DNS lookup happens. Depending on the scenario,

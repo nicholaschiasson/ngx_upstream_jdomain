@@ -20,6 +20,12 @@ typedef struct
 
 	struct
 	{
+		ngx_http_upstream_init_pt default_init;
+		ngx_http_upstream_init_peer_pt default_init_peer;
+	} handlers;
+
+	struct
+	{
 		struct
 		{
 			ngx_array_t* addrs;
@@ -56,7 +62,7 @@ static char*
 ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
 
 static ngx_command_t ngx_http_upstream_jdomain_commands[] = {
-	{ ngx_string("jdomain"), NGX_HTTP_UPS_CONF | NGX_CONF_1MORE, ngx_http_upstream_jdomain, 0, 0, NULL },
+	{ ngx_string("jdomain"), NGX_HTTP_UPS_CONF | NGX_CONF_1MORE, ngx_http_upstream_jdomain, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
 	ngx_null_command
 };
 
@@ -95,13 +101,14 @@ ngx_http_upstream_init_jdomain(ngx_conf_t* cf, ngx_http_upstream_srv_conf_t* us)
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "ngx_http_upstream_jdomain_module: init jdomain");
 
-	if (ngx_http_upstream_init_round_robin(cf, us) != NGX_OK) {
+	jcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
+
+	if (jcf->handlers.default_init(cf, us) != NGX_OK) {
 		return NGX_ERROR;
 	}
 
+	jcf->handlers.default_init_peer = us->peer.init;
 	us->peer.init = ngx_http_upstream_init_jdomain_peer;
-
-	jcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
 	peers = us->peer.data;
 	peerp = jcf->state.data.peerps->elts;
 	i = 0;
@@ -137,13 +144,12 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t* r, ngx_http_upstream_srv
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ngx_http_upstream_jdomain_module: init jdomain peer");
 
-	rc = ngx_http_upstream_init_round_robin_peer(r, us);
+	jcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
+
+	rc = jcf->handlers.default_init_peer(r, us);
 	if (rc != NGX_OK) {
 		goto end;
 	}
-
-	jcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
-	clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
 	if (!jcf->conf.retry) {
 		r->upstream->peer.tries = 1;
@@ -154,6 +160,8 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t* r, ngx_http_upstream_srv
 	}
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ngx_http_upstream_jdomain_module: update from DNS cache");
+
+	clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
 	ctx = ngx_resolve_start(clcf->resolver, NULL);
 	if (ctx == NULL) {
@@ -323,13 +331,14 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 
 	uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
 
+	jcf = ngx_http_conf_upstream_srv_conf(uscf, ngx_http_upstream_jdomain_module);
+	jcf->parent = uscf;
+	jcf->handlers.default_init = uscf->peer.init_upstream ? uscf->peer.init_upstream : ngx_http_upstream_init_round_robin;
+
 	uscf->peer.init_upstream = ngx_http_upstream_init_jdomain;
 	uscf->flags = NGX_HTTP_UPSTREAM_CREATE | NGX_HTTP_UPSTREAM_WEIGHT | NGX_HTTP_UPSTREAM_MAX_FAILS |
 	              NGX_HTTP_UPSTREAM_FAIL_TIMEOUT | NGX_HTTP_UPSTREAM_DOWN | NGX_HTTP_UPSTREAM_BACKUP |
 	              NGX_HTTP_UPSTREAM_MAX_CONNS;
-
-	jcf = ngx_http_conf_upstream_srv_conf(uscf, ngx_http_upstream_jdomain_module);
-	jcf->parent = uscf;
 
 	errstr = ngx_pcalloc(cf->pool, NGX_MAX_CONF_ERRSTR);
 	if (!errstr) {
