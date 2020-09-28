@@ -16,13 +16,16 @@ may populate an `upstream` block with multiple `jdomain` directives, multiple
 `server` directives, `keepalive`, load balancing directives, etc. Note that
 unless another load balancing method is specified in the `upstream` block, this
 module makes use of the default round robin load balancing algorithm built into
-nginx core. Should an alternate load balancing algorithm be specified, **it
-must come _before_ the jdomain directive in the upstream block!** If this is
-not followed, nginx **_will_** crash during runtime! This is because many other
-load balancing modules explicitly extend the built in round robin, and thus end
-up clobbering the jdomain initialization handlers, since jdomain is technically
-a load balancer module as well. While this may not be the case with all load
-balancer modules, it's better to stay on the safe side and place jdomain after.
+nginx core.
+
+**Important Note**: Should an alternate load balancing algorithm be specified,
+**it must come _before_ the jdomain directive in the upstream block!** If this
+is not followed, nginx **_will_** crash during runtime! This is because many
+other load balancing modules explicitly extend the built in round robin, and
+thus end up clobbering the jdomain initialization handlers, since jdomain is
+technically a load balancer module as well. While this may not be the case with
+all load balancer modules, it's better to stay on the safe side and place
+jdomain after.
 
 **Important Note**: Due to the non blocking nature of this module and the fact
 that its DNS resolution is triggered by incoming requests, the request that
@@ -85,13 +88,12 @@ server {
 ## Synopsis
 
 ```
-Syntax: jdomain <domain-name> [port=80] [max_ips=8] [interval=1] [retry_off] [strict]
+Syntax: jdomain <domain-name> [port=80] [max_ips=8] [interval=1] [strict]
 Context: upstream
 Attributes:
 	port:       Backend's listening port.                                      (Default: 80)
 	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 8)
 	interval:   How many seconds to resolve domain name.                       (Default: 1)
-	retry_off:  Do not retry if one IP fails.
 	strict:     Require the DNS resolution to succeed and return addresses,
 	            otherwise marks the underlying server and peers as down and
 	            forces use of other servers in the upstream block if there
