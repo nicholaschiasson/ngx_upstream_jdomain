@@ -1,5 +1,6 @@
 use Test::Nginx::Socket 'no_plan';
 
+workers(2);
 run_tests();
 
 __DATA__

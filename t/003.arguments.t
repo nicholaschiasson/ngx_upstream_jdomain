@@ -4,7 +4,7 @@ add_response_body_check(sub {
 	my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
 	if ($body eq "Interval") {
 		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
-		sleep(2);
+		sleep(4);
 	} elsif ($body eq "Flip") {
 		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
 		sleep(1);
@@ -293,9 +293,10 @@ location = / {
 --- request eval
 ["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
 --- error_code eval
-[201, 201, 201, 201, 202, 202, 202, 202]
+[201, 201, 201, 202, 202, 202, 202, 202]
 --- response_body eval
-["Interval", "Interval", "Interval", "Interval", "Pass", "Pass", "Pass", "Pass"]
+["Interval", "Interval", "Interval", "Pass", "Pass", "Pass", "Pass", "Pass"]
+--- ONLY
 === TEST 4: Invalid interval zero
 --- http_config
 resolver 127.0.0.88;

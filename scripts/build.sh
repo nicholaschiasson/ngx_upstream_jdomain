@@ -4,9 +4,15 @@ set -ex
 
 source .env
 
+SRC_DIR=/src/nginx
+MOD_DIR=/src/modules
+
+pushd ${SRC_DIR}
+patch -p1 < ${MOD_DIR}/nginx_upstream_check_module/check_1.16.1+.patch
+popd
+
 for type in dynamic static
 do
-	SRC_DIR=/src/nginx
 	BIN_DIR=${GITHUB_WORKSPACE}/bin/${type}
 	TYPE=${type/static/-}
 	TYPE=${TYPE/dynamic/-dynamic-}
@@ -35,6 +41,8 @@ do
 		--without-http_empty_gif_module \
 		--without-http_browser_module \
 		--without-http_upstream_ip_hash_module \
+		--add-module=${MOD_DIR}/nginx_upstream_check_module \
+		--add-module=${MOD_DIR}/nginx-module-vts \
 		--add${TYPE}module=${GITHUB_WORKSPACE} \
 		# --with-openssl=/src/openssl
 
