@@ -173,7 +173,11 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t* r, ngx_http_upstream_srv
 
 		ctx = ngx_resolve_start(clcf->resolver, NULL);
 		if (ctx == NULL) {
-			ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0, "ngx_http_upstream_jdomain_module: ngx_resolve_start \"%V\" fail", &instance[i].conf.domain);
+			ngx_log_error(NGX_LOG_ALERT,
+			              r->connection->log,
+			              0,
+			              "ngx_http_upstream_jdomain_module: ngx_resolve_start \"%V\" fail",
+			              &instance[i].conf.domain);
 			continue;
 		}
 
