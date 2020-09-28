@@ -43,7 +43,7 @@ several features ahead.
 ## Installation
 
 [Build nginx](http://nginx.org/en/docs/configure.html) with this repository as
-a static or dynamie module.
+a static or dynamic module.
 
 ```shell
 ./configure --add-module=/path/to/this/directory
