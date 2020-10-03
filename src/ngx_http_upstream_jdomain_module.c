@@ -20,12 +20,12 @@ typedef struct
 	{
 		struct
 		{
-			ngx_array_t* addrs;
+			ngx_array_t *addrs;
 			ngx_uint_t naddrs;
-			ngx_array_t* names;
-			ngx_array_t* peerps;
-			ngx_http_upstream_server_t* server;
-			ngx_array_t* sockaddrs;
+			ngx_array_t *names;
+			ngx_array_t *peerps;
+			ngx_http_upstream_server_t *server;
+			ngx_array_t *sockaddrs;
 		} data;
 		struct
 		{
@@ -33,7 +33,7 @@ typedef struct
 			ngx_int_t status;
 		} resolve;
 	} state;
-	ngx_http_upstream_srv_conf_t* parent;
+	ngx_http_upstream_srv_conf_t *parent;
 } ngx_http_upstream_jdomain_instance_t;
 
 typedef struct
@@ -43,26 +43,26 @@ typedef struct
 		ngx_http_upstream_init_pt default_init;
 		ngx_http_upstream_init_peer_pt default_init_peer;
 	} handlers;
-	ngx_array_t* instances;
+	ngx_array_t *instances;
 } ngx_http_upstream_jdomain_srv_conf_t;
 
 static ngx_int_t
-ngx_http_upstream_init_jdomain(ngx_conf_t* cf, ngx_http_upstream_srv_conf_t* us);
+ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us);
 
 static ngx_int_t
-ngx_http_upstream_init_jdomain_peer(ngx_http_request_t* r, ngx_http_upstream_srv_conf_t* us);
+ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *us);
 
 static void
-ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t* ctx);
+ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx);
 
-static void*
-ngx_http_upstream_jdomain_create_conf(ngx_conf_t* cf);
+static void *
+ngx_http_upstream_jdomain_create_conf(ngx_conf_t *cf);
 
-static void*
-ngx_http_upstream_jdomain_create_instance(ngx_conf_t* cf, ngx_array_t* instance_array);
+static void *
+ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_array_t *instance_array);
 
-static char*
-ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
+static char *
+ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
 static ngx_command_t ngx_http_upstream_jdomain_commands[] = {
 	{ ngx_string("jdomain"), NGX_HTTP_UPS_CONF | NGX_CONF_1MORE, ngx_http_upstream_jdomain, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
@@ -94,17 +94,17 @@ ngx_module_t ngx_http_upstream_jdomain_module = { NGX_MODULE_V1,
 	                                                NGX_MODULE_V1_PADDING };
 
 static struct sockaddr_in INVALID_ADDR_SOCKADDR_IN = { 0 };
-static const ngx_addr_t INVALID_ADDR = { (struct sockaddr*)(&INVALID_ADDR_SOCKADDR_IN),
+static const ngx_addr_t INVALID_ADDR = { (struct sockaddr *)(&INVALID_ADDR_SOCKADDR_IN),
 	                                       sizeof(struct sockaddr_in),
 	                                       ngx_string("0.0.0.0:0") };
 
 static ngx_int_t
-ngx_http_upstream_init_jdomain(ngx_conf_t* cf, ngx_http_upstream_srv_conf_t* us)
+ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 {
-	ngx_http_upstream_jdomain_srv_conf_t* jcf;
-	ngx_http_upstream_jdomain_instance_t* instance;
+	ngx_http_upstream_jdomain_srv_conf_t *jcf;
+	ngx_http_upstream_jdomain_instance_t *instance;
 	ngx_http_upstream_rr_peer_t *peer, **peerp;
-	ngx_http_upstream_rr_peers_t* peers;
+	ngx_http_upstream_rr_peers_t *peers;
 	ngx_uint_t i, j;
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "ngx_http_upstream_jdomain_module: init jdomain");
@@ -147,12 +147,12 @@ ngx_http_upstream_init_jdomain(ngx_conf_t* cf, ngx_http_upstream_srv_conf_t* us)
 }
 
 static ngx_int_t
-ngx_http_upstream_init_jdomain_peer(ngx_http_request_t* r, ngx_http_upstream_srv_conf_t* us)
+ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *us)
 {
-	ngx_http_upstream_jdomain_srv_conf_t* jcf;
-	ngx_http_upstream_jdomain_instance_t* instance;
-	ngx_http_core_loc_conf_t* clcf;
-	ngx_resolver_ctx_t* ctx;
+	ngx_http_upstream_jdomain_srv_conf_t *jcf;
+	ngx_http_upstream_jdomain_instance_t *instance;
+	ngx_http_core_loc_conf_t *clcf;
+	ngx_resolver_ctx_t *ctx;
 	ngx_uint_t i;
 	ngx_int_t rc;
 
@@ -212,16 +212,16 @@ end:
 }
 
 static void
-ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t* ctx)
+ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 {
-	ngx_http_upstream_jdomain_instance_t* instance;
+	ngx_http_upstream_jdomain_instance_t *instance;
 	ngx_uint_t i;
-	struct sockaddr* sockaddr;
-	u_char* name;
-	ngx_addr_t* addr;
-	ngx_http_upstream_rr_peer_t** peerp;
+	struct sockaddr *sockaddr;
+	u_char *name;
+	ngx_addr_t *addr;
+	ngx_http_upstream_rr_peer_t **peerp;
 
-	instance = (ngx_http_upstream_jdomain_instance_t*)ctx->data;
+	instance = (ngx_http_upstream_jdomain_instance_t *)ctx->data;
 
 	if (ctx->state || ctx->naddrs == 0) {
 		instance->state.data.server->down =
@@ -281,10 +281,10 @@ end:
 /*
  * Called before the main entry point. This function initializes the module state data.
  */
-static void*
-ngx_http_upstream_jdomain_create_conf(ngx_conf_t* cf)
+static void *
+ngx_http_upstream_jdomain_create_conf(ngx_conf_t *cf)
 {
-	ngx_http_upstream_jdomain_srv_conf_t* conf;
+	ngx_http_upstream_jdomain_srv_conf_t *conf;
 
 	conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_upstream_jdomain_srv_conf_t));
 	if (!conf) {
@@ -301,10 +301,10 @@ ngx_http_upstream_jdomain_create_conf(ngx_conf_t* cf)
 	return conf;
 }
 
-static void*
-ngx_http_upstream_jdomain_create_instance(ngx_conf_t* cf, ngx_array_t* instance_array)
+static void *
+ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_array_t *instance_array)
 {
-	ngx_http_upstream_jdomain_instance_t* instance;
+	ngx_http_upstream_jdomain_instance_t *instance;
 
 	instance = ngx_array_push(instance_array);
 	if (instance == NULL) {
@@ -325,23 +325,23 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t* cf, ngx_array_t* instance_
 /*
  * Module entrypoint. This function performs initial (blocking) domain name resolution and finishes initializing state data.
  */
-static char*
-ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
+static char *
+ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
-	ngx_http_upstream_srv_conf_t* uscf;
-	ngx_http_upstream_jdomain_srv_conf_t* jcf;
-	ngx_http_upstream_jdomain_instance_t* instance;
+	ngx_http_upstream_srv_conf_t *uscf;
+	ngx_http_upstream_jdomain_srv_conf_t *jcf;
+	ngx_http_upstream_jdomain_instance_t *instance;
 
-	ngx_addr_t* addr;
+	ngx_addr_t *addr;
 	u_char *name, *errstr;
-	ngx_http_upstream_rr_peer_t** peerps;
-	struct sockaddr* sockaddr;
+	ngx_http_upstream_rr_peer_t **peerps;
+	struct sockaddr *sockaddr;
 
 	ngx_str_t *value, s;
 	ngx_int_t num;
 	ngx_url_t u;
 	ngx_uint_t i;
-	char* rc;
+	char *rc;
 
 	INVALID_ADDR_SOCKADDR_IN.sin_addr.s_addr = htonl(INADDR_ANY);
 	INVALID_ADDR_SOCKADDR_IN.sin_family = AF_INET;
@@ -451,14 +451,14 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 	ngx_memzero(addr, sizeof(ngx_addr_t) * instance->conf.max_ips);
 
 	instance->state.data.peerps = !instance->state.data.peerps
-	                                ? ngx_array_create(cf->pool, instance->conf.max_ips, sizeof(ngx_http_upstream_rr_peer_t*))
+	                                ? ngx_array_create(cf->pool, instance->conf.max_ips, sizeof(ngx_http_upstream_rr_peer_t *))
 	                                : instance->state.data.peerps;
 	if (!instance->state.data.peerps) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_create peerps fail");
 		goto failure;
 	}
 	peerps = instance->state.data.peerps->elts;
-	ngx_memzero(peerps, sizeof(ngx_http_upstream_rr_peer_t*) * instance->conf.max_ips);
+	ngx_memzero(peerps, sizeof(ngx_http_upstream_rr_peer_t *) * instance->conf.max_ips);
 
 	if (!uscf->servers) {
 		uscf->servers = ngx_array_create(cf->pool, 1, sizeof(ngx_http_upstream_server_t));
@@ -489,7 +489,7 @@ ngx_http_upstream_jdomain(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 		if (uscf->servers->nelts < 2) {
 			goto failure;
 		}
-		ngx_conf_log_error(NGX_LOG_WARN, cf, 0, (const char*)errstr);
+		ngx_conf_log_error(NGX_LOG_WARN, cf, 0, (const char *)errstr);
 	}
 
 	for (i = 0; i < ngx_min(u.naddrs, instance->conf.max_ips); i++) {
@@ -520,8 +520,8 @@ invalid:
 	ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: invalid parameter \"%V\"", &value[i]);
 
 failure:
-	ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, (const char*)errstr);
-	rc = (char*)errstr;
+	ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, (const char *)errstr);
+	rc = (char *)errstr;
 
 end:
 	return rc;
