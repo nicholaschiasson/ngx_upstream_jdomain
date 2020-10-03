@@ -314,7 +314,7 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_array_t *instance_
 	ngx_memzero(instance, sizeof(ngx_http_upstream_jdomain_instance_t));
 
 	instance->conf.interval = 1;
-	instance->conf.max_ips = 8;
+	instance->conf.max_ips = 4;
 	instance->conf.port = 80;
 
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
