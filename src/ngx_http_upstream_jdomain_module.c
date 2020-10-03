@@ -337,7 +337,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_http_upstream_rr_peer_t **peerps;
 	struct sockaddr *sockaddr;
 
-	ngx_pool_t* pool;
+	ngx_pool_t *pool;
 	ngx_str_t *value, s;
 	ngx_int_t num;
 	ngx_url_t u;
