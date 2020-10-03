@@ -47,16 +47,8 @@ location = /status {
 2,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
 3,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
 4,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-5,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
+5,upstream_test,127.0.0.3:8000,up,[0-9]+,0,http,0
 6,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
 7,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
 8,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-9,upstream_test,127.0.0.3:8000,up,[0-9]+,0,http,0
-10,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-11,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-12,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-13,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-14,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-15,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-16,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
 "]
