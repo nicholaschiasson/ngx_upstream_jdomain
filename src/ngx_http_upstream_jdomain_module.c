@@ -337,6 +337,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_http_upstream_rr_peer_t **peerps;
 	struct sockaddr *sockaddr;
 
+	ngx_pool_t* pool;
 	ngx_str_t *value, s;
 	ngx_int_t num;
 	ngx_url_t u;
@@ -347,9 +348,16 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	INVALID_ADDR_SOCKADDR_IN.sin_family = AF_INET;
 	INVALID_ADDR_SOCKADDR_IN.sin_port = htons(0);
 
-	errstr = ngx_pcalloc(cf->temp_pool, NGX_MAX_CONF_ERRSTR);
+	errstr = ngx_pcalloc(cf->pool, NGX_MAX_CONF_ERRSTR);
 	if (!errstr) {
 		rc = "ngx_http_upstream_jdomain_module: ngx_pcalloc errstr fail";
+		ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, rc);
+		return rc;
+	}
+
+	pool = ngx_create_pool(NGX_MIN_POOL_SIZE, cf->log);
+	if (!pool) {
+		rc = "ngx_http_upstream_jdomain_module: ngx_create_pool pool fail";
 		ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, rc);
 		return rc;
 	}
@@ -484,7 +492,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	u.default_port = instance->conf.port;
 
 	/* Initial domain name resolution */
-	if (ngx_parse_url(cf->temp_pool, &u) != NGX_OK) {
+	if (ngx_parse_url(pool, &u) != NGX_OK) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
 		if (uscf->servers->nelts < 2) {
 			goto failure;
@@ -524,5 +532,6 @@ failure:
 	rc = (char *)errstr;
 
 end:
+	ngx_destroy_pool(pool);
 	return rc;
 }
