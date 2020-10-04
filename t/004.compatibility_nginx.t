@@ -212,8 +212,8 @@ unbound-control reload` or die $!;
 resolver 127.0.0.88;
 upstream upstream_test {
 	server 127.0.0.2;
-	jdomain example.com interval=30 max_ips=3;
-	jdomain example.ca interval=30 max_ips=3;
+	jdomain example.com interval=30;
+	jdomain example.ca interval=30;
 }
 server {
 	listen 127.0.0.2:80;
