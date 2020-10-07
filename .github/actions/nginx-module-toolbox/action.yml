@@ -1,13 +1,4 @@
 name: Nginx Module Toolbox
-inputs:
-  imageBase:
-    description: Base docker image version.
-    required: true
-    default: amazonlinux-2
-  nginxVersion:
-    description: Nginx version.
-    required: true
-    default: 1.16.1
 runs:
   using: docker
-  image: Dockerfile.${{ inputs.imageBase }}-${{ inputs.nginxVersion }}
+  image: Dockerfile
