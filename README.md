@@ -185,6 +185,84 @@ You can run the test suite using the test task, like so:
 makers test
 ```
 
+### Debugging
+
+We can use `valgrind` and `gdb` on nginx from inside the container.
+
+First open an interactive shell in the container with:
+
+```bash
+$ makers
+```
+
+We'll use that session to run `valgrind`:
+
+```bash
+$ valgrind --vgdb=full --vgdb-error=0 /github/workspace/bin/static/nginx -p/github/workspace/t/servroot -cconf/nginx.conf
+==15== Memcheck, a memory error detector
+==15== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==15== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==15== Command: /github/workspace/bin/static/nginx -p/github/workspace/t/servroot -cconf/nginx.conf
+==15==
+==15== (action at startup) vgdb me ...
+==15==
+==15== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==15==   /path/to/gdb /github/workspace/bin/static/nginx
+==15== and then give GDB the following command
+==15==   target remote | /usr/lib64/valgrind/../../bin/vgdb --pid=15
+==15== --pid is optional if only one valgrind process is running
+==15==
+```
+
+Next, find the container identifier so we can open another session inside it:
+
+```bash
+$ docker ps
+CONTAINER ID        IMAGE                                     COMMAND             CREATED             STATUS              PORTS                    NAMES
+55fab1e069ba        act-github-actions-nginx-module-toolbox   "bash"              4 seconds ago       Up 3 seconds        0.0.0.0:1984->1984/tcp   serene_newton
+```
+
+Use either the name of ID to execute a bash session inside the container:
+
+```bash
+$ docker exec -it serene_newton bash
+```
+
+We'll use this session to start `gdb` and target the valgrind gdb server we started in the other session:
+
+```bash
+gdb /github/workspace/bin/static/nginx
+GNU gdb (GDB) Red Hat Enterprise Linux 8.0.1-30.amzn2.0.3
+Copyright (C) 2017 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /github/workspace/bin/static/nginx...done.
+(gdb)
+```
+
+From the gdb prompt, target the valgrind process and begin debugging:
+
+```bash
+(gdb) target remote | /usr/lib64/valgrind/../../bin/vgdb --pid=15
+Remote debugging using | /usr/lib64/valgrind/../../bin/vgdb --pid=15
+relaying data between gdb and process 15
+warning: remote target does not support file transfer, attempting to access files from local filesystem.
+Reading symbols from /lib64/ld-linux-x86-64.so.2...(no debugging symbols found)...done.
+0x0000000004000ef0 in _start () from /lib64/ld-linux-x86-64.so.2
+Missing separate debuginfos, use: debuginfo-install glibc-2.26-35.amzn2.x86_64
+(gdb)
+```
+
 ### Running GitHub Actions
 
 With `act`, you can simulate the workflow that will run on GitHub servers once
