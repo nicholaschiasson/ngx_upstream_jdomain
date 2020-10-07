@@ -97,9 +97,9 @@ ngx_module_t ngx_http_upstream_jdomain_module = { NGX_MODULE_V1,
 	                                                NGX_MODULE_V1_PADDING };
 
 static struct sockaddr_in INVALID_ADDR_SOCKADDR_IN = { 0 };
-static ngx_addr_t INVALID_ADDR = { (struct sockaddr *)(&INVALID_ADDR_SOCKADDR_IN),
-	                                 sizeof(struct sockaddr_in),
-	                                 ngx_string("0.0.0.0:0") };
+static const ngx_addr_t INVALID_ADDR = { (struct sockaddr *)(&INVALID_ADDR_SOCKADDR_IN),
+	                                       sizeof(struct sockaddr_in),
+	                                       ngx_string("0.0.0.0:0") };
 
 static ngx_int_t
 ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
@@ -218,7 +218,7 @@ static void
 ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 {
 	ngx_http_upstream_jdomain_instance_t *instance;
-	ngx_uint_t i;
+	ngx_uint_t i, naddrs_prev;
 	ngx_sockaddr_t *sockaddr;
 	u_char *name;
 	ngx_addr_t *addr;
@@ -246,36 +246,29 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 	name = instance->state.data.names->elts;
 	peerp = instance->state.data.peerps->elts;
 	sockaddr = instance->state.data.sockaddrs->elts;
+	naddrs_prev = instance->state.data.server->naddrs;
 	instance->state.data.server->naddrs = 0;
-	instance->state.data.addrs->nelts = 0;
-	instance->state.data.names->nelts = 0;
-	instance->state.data.sockaddrs->nelts = 0;
-	ngx_memzero(addr, sizeof(ngx_addr_t) * instance->conf.max_ips);
-	ngx_memzero(name, NGX_SOCKADDR_STRLEN * instance->conf.max_ips);
-	ngx_memzero(sockaddr, NGX_SOCKADDRLEN * instance->conf.max_ips);
 	for (i = 0; i < ngx_min(ctx->naddrs, instance->conf.max_ips); i++) {
 		addr[i].sockaddr = &sockaddr[i].sockaddr;
-		addr[i].socklen = ctx->addrs[i].socklen;
-		ngx_memcpy(addr[i].sockaddr, ctx->addrs[i].sockaddr, ctx->addrs[i].socklen);
+		addr[i].socklen = peerp[i]->socklen = ctx->addrs[i].socklen;
+		ngx_memcpy(addr[i].sockaddr, ctx->addrs[i].sockaddr, addr[i].socklen);
 		ngx_inet_set_port(addr[i].sockaddr, instance->conf.port);
 		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
-		addr[i].name.len = ngx_sock_ntop(addr[i].sockaddr, addr[i].socklen, addr[i].name.data, NGX_SOCKADDR_STRLEN, 1);
+		addr[i].name.len = peerp[i]->name.len =
+		  ngx_sock_ntop(addr[i].sockaddr, addr[i].socklen, addr[i].name.data, NGX_SOCKADDR_STRLEN, 1);
 		peerp[i]->down = 0;
-		peerp[i]->name.data = addr[i].name.data;
-		peerp[i]->name.len = addr[i].name.len;
-		peerp[i]->sockaddr = addr[i].sockaddr;
-		peerp[i]->socklen = addr[i].socklen;
 		instance->state.data.server->down = 0;
 		instance->state.data.server->naddrs++;
 	}
 	instance->state.data.naddrs = instance->state.data.server->naddrs;
-	for (i = instance->state.data.naddrs; i < instance->conf.max_ips; i++) {
-		ngx_memcpy(&addr[i], &INVALID_ADDR, sizeof(ngx_addr_t));
+	for (i = instance->state.data.naddrs; i < ngx_min(naddrs_prev, instance->conf.max_ips); i++) {
+		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
+		addr[i].name.len = peerp[i]->name.len = INVALID_ADDR.name.len;
+		ngx_memcpy(addr[i].name.data, INVALID_ADDR.name.data, addr[i].name.len);
+		addr[i].sockaddr = &sockaddr[i].sockaddr;
+		addr[i].socklen = peerp[i]->socklen = INVALID_ADDR.socklen;
+		ngx_memcpy(addr[i].sockaddr, INVALID_ADDR.sockaddr, addr[i].socklen);
 		peerp[i]->down = 1;
-		peerp[i]->name.data = addr[i].name.data;
-		peerp[i]->name.len = addr[i].name.len;
-		peerp[i]->sockaddr = addr[i].sockaddr;
-		peerp[i]->socklen = addr[i].socklen;
 	}
 
 end:
@@ -437,7 +430,6 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		goto failure;
 	}
 	ngx_memzero(server, sizeof(ngx_http_upstream_server_t));
-	server->addrs = &INVALID_ADDR;
 	server->fail_timeout = 10; /* server default */
 	server->max_fails = 1;     /* server default */
 	server->weight = 1;        /* server default */
@@ -519,24 +511,29 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	name = instance->state.data.names->elts;
 	sockaddr = instance->state.data.sockaddrs->elts;
 	for (i = 0; i < ngx_min(u.naddrs, instance->conf.max_ips); i++) {
-		addr[i].sockaddr = &sockaddr[i].sockaddr;
-		addr[i].socklen = u.addrs[i].socklen;
 		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
 		addr[i].name.len = u.addrs[i].name.len;
-		ngx_memcpy(addr[i].sockaddr, u.addrs[i].sockaddr, u.addrs[i].socklen);
-		ngx_memcpy(addr[i].name.data, u.addrs[i].name.data, u.addrs[i].name.len);
-		instance->state.data.server->naddrs++;
+		ngx_memcpy(addr[i].name.data, u.addrs[i].name.data, addr[i].name.len);
+		addr[i].sockaddr = &sockaddr[i].sockaddr;
+		addr[i].socklen = u.addrs[i].socklen;
+		ngx_memcpy(addr[i].sockaddr, u.addrs[i].sockaddr, addr[i].socklen);
+		server->naddrs++;
 	}
-	instance->state.data.naddrs = instance->state.data.server->naddrs;
+	instance->state.data.naddrs = server->naddrs;
 	for (i = instance->state.data.naddrs; i < instance->conf.max_ips; i++) {
-		ngx_memcpy(&addr[i], &INVALID_ADDR, sizeof(ngx_addr_t));
+		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
+		addr[i].name.len = INVALID_ADDR.name.len;
+		ngx_memcpy(addr[i].name.data, INVALID_ADDR.name.data, addr[i].name.len);
+		addr[i].sockaddr = &sockaddr[i].sockaddr;
+		addr[i].socklen = INVALID_ADDR.socklen;
+		ngx_memcpy(addr[i].sockaddr, INVALID_ADDR.sockaddr, addr[i].socklen);
 	}
 
 	/* This is a hack to allow nginx to load without complaint in case there are other server directives in the upstream block */
-	instance->state.data.server->down = instance->state.data.server->naddrs < 1;
+	server->down = server->naddrs < 1;
 
 	/* This is a hack to guarantee the creation of enough round robin peers up front so we can minimize memory manipulation */
-	instance->state.data.server->naddrs = instance->conf.max_ips;
+	server->naddrs = instance->conf.max_ips;
 
 	instance->state.resolve.access = ngx_time();
 
