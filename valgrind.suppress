@@ -12,6 +12,16 @@
 	Memcheck:Leak
 	match-leak-kinds: definite
 	fun:malloc
+	fun:ngx_alloc
+	fun:ngx_set_environment
+	fun:ngx_worker_process_init
+	fun:ngx_worker_process_cycle
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	match-leak-kinds: definite
+	fun:malloc
 	fun:CRYPTO_malloc
 	fun:SSL_SESSION_new
 	fun:ssl_get_new_session
@@ -44,15 +54,7 @@
 }
 {
 	<insert_a_suppression_name_here>
-	Memcheck:Leak
-	match-leak-kinds: definite
-	fun:malloc
-	fun:ngx_alloc
-	fun:ngx_set_environment
-	fun:ngx_worker_process_init
-	fun:ngx_worker_process_cycle
-	fun:ngx_spawn_process
-	fun:ngx_start_worker_processes
-	fun:ngx_master_process_cycle
-	fun:main
+	Memcheck:Param
+	epoll_ctl(event)
+	fun:epoll_ctl
 }

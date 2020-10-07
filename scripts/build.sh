@@ -24,6 +24,7 @@ do
 	./configure \
 		--prefix=${BIN_DIR} \
 		--with-debug \
+		--with-cc-opt='-O0 -g' \
 		--with-http_ssl_module \
 		--without-http_charset_module \
 		--without-http_userid_module \
