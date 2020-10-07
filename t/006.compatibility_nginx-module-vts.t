@@ -4,7 +4,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: Valid upstream
+=== TEST 1: Virtual host traffic status
 --- init
 `echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf &&
 echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound_local_zone.conf &&
