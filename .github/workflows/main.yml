@@ -83,7 +83,7 @@ jobs:
         imageBase:
           # - alpine-3
           - amazonlinux-2
-          - centos-8
+          # - centos-8
           # - ubuntu-20.04
         nginxVersion:
           - 1.16.1
