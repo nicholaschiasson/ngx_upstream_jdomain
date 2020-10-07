@@ -15,7 +15,7 @@ runs:
   using: composite
   steps:
     - id: build
-      run: docker build . --build-arg IMAGE_BASE=${{ inputs.imageBase }} --build-arg NGINX_VERSION=${{ inputs.nginxVersion }} -t toolbox
+      run: docker build .github/actions/nginx-module-toolbox --build-arg IMAGE_BASE=${{ inputs.imageBase }} --build-arg NGINX_VERSION=${{ inputs.nginxVersion }} -t toolbox
       shell: bash
     - id: run
       run: docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace toolbox ${{ inputs.entrypoint }}
