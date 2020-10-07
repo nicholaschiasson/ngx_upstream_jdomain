@@ -231,7 +231,7 @@ $ docker exec -it serene_newton bash
 We'll use this session to start `gdb` and target the valgrind gdb server we started in the other session:
 
 ```bash
-gdb /github/workspace/bin/static/nginx
+$ gdb /github/workspace/bin/static/nginx
 GNU gdb (GDB) Red Hat Enterprise Linux 8.0.1-30.amzn2.0.3
 Copyright (C) 2017 Free Software Foundation, Inc.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
