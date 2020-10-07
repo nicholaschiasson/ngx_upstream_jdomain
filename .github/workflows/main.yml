@@ -13,14 +13,10 @@ jobs:
         imageBase:
           # - alpine-3
           - amazonlinux-2
-          - centos-8
+          # - centos-8
           # - ubuntu-20.04
         nginxVersion:
-          - 1.10.3
-          - 1.12.2
-          - 1.14.2
           - 1.16.1
-          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -38,14 +34,10 @@ jobs:
         imageBase:
           # - alpine-3
           - amazonlinux-2
-          - centos-8
+          # - centos-8
           # - ubuntu-20.04
         nginxVersion:
-          - 1.10.3
-          - 1.12.2
-          - 1.14.2
           - 1.16.1
-          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -63,14 +55,10 @@ jobs:
         imageBase:
           # - alpine-3
           - amazonlinux-2
-          - centos-8
+          # - centos-8
           # - ubuntu-20.04
         nginxVersion:
-          - 1.10.3
-          - 1.12.2
-          - 1.14.2
           - 1.16.1
-          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -98,11 +86,7 @@ jobs:
           - centos-8
           # - ubuntu-20.04
         nginxVersion:
-          - 1.10.3
-          - 1.12.2
-          - 1.14.2
           - 1.16.1
-          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
