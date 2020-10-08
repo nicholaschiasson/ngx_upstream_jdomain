@@ -16,7 +16,9 @@ jobs:
           # - centos-8
           # - ubuntu-20.04
         nginxVersion:
+          - 1.14.2
           - 1.16.1
+          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,7 +39,9 @@ jobs:
           # - centos-8
           # - ubuntu-20.04
         nginxVersion:
+          - 1.14.2
           - 1.16.1
+          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -58,7 +62,9 @@ jobs:
           # - centos-8
           # - ubuntu-20.04
         nginxVersion:
+          - 1.14.2
           - 1.16.1
+          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -86,7 +92,9 @@ jobs:
           # - centos-8
           # - ubuntu-20.04
         nginxVersion:
+          - 1.14.2
           - 1.16.1
+          - 1.18.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
