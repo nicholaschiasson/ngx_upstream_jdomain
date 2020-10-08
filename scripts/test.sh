@@ -9,7 +9,7 @@ openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/nginx/test/key.pem -out /etc
 
 echo "nameserver 127.0.0.88" > /etc/resolv.conf
 
-unbound-control -c /etc/unbound.conf start
+unbound-control -c /etc/unbound/unbound.conf start
 unbound-control verbosity 3
 
 export TEST_NGINX_USE_VALGRIND=1

@@ -7,7 +7,7 @@ __DATA__
 
 === TEST 1: Load balancing with server
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -34,8 +34,8 @@ location = / {
 ["Pass 1", "Pass 2", "Pass 1", "Pass 2", "Pass 1", "Pass 2", "Pass 1", "Pass 2"]
 === TEST 2: Load balancing with server and multiple addresses
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
@@ -67,8 +67,8 @@ location = / {
 ["Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2"]
 === TEST 3: Load balancing with server and least_conn
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
@@ -101,8 +101,8 @@ location = / {
 ["Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2"]
 === TEST 4: Load balancing with server and keepalive
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
@@ -135,8 +135,8 @@ location = / {
 ["Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2"]
 === TEST 5: Load balancing with server and hash
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
@@ -169,8 +169,8 @@ location = / {
 ["Pass 1", "Pass 1", "Pass 1", "Pass 1", "Pass 1", "Pass 1", "Pass 1", "Pass 1"]
 === TEST 6: Load balancing with server and zone
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
@@ -203,10 +203,10 @@ location = / {
 ["Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2", "Pass 3", "Pass 1", "Pass 2"]
 === TEST 7: Load balancing with server and multiple jdomain
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.ca 1 A 127.0.0.5"' >> /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.ca 1 A 127.0.0.6"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.ca 1 A 127.0.0.5"' >> /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.ca 1 A 127.0.0.6"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;

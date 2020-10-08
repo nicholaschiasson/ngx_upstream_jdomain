@@ -1,7 +1,7 @@
 ARG IMAGE_BASE
 ARG NGINX_VERSION
 
-FROM nicholaschiasson/nginx-module-toolbox:${IMAGE_BASE}-${NGINX_VERSION}-2.5.0
+FROM nicholaschiasson/nginx-module-toolbox:${IMAGE_BASE}-${NGINX_VERSION}-2.7.0
 
 WORKDIR /src/openssl
 RUN curl -sL https://www.openssl.org/source/openssl-1.1.1g.tar.gz -o openssl.tar.gz

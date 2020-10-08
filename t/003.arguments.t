@@ -3,13 +3,13 @@ use Test::Nginx::Socket 'no_plan';
 add_response_body_check(sub {
 	my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
 	if ($body eq "Interval") {
-		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 		sleep(4);
 	} elsif ($body eq "Flip") {
-		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 		sleep(1);
 	} elsif ($body eq "Flop") {
-		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 		sleep(1);
 	}
 });
@@ -21,7 +21,7 @@ __DATA__
 
 === TEST 1: Valid domain
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -43,7 +43,7 @@ location = / {
 ["Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
 === TEST 1: IP in place of domain
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -65,7 +65,7 @@ location = / {
 ["Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
 === TEST 1: IP with port in place of domain
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -100,7 +100,7 @@ location = / {
 invalid number of arguments in "jdomain" directive
 === TEST 2: Valid port
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -172,8 +172,8 @@ upstream upstream_test {
 invalid parameter "port="
 === TEST 3: Valid max_ips
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
@@ -246,7 +246,7 @@ upstream upstream_test {
 invalid parameter "max_ips="
 === TEST 4: Valid interval
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -272,7 +272,7 @@ location = / {
 ["Interval", "Interval", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
 === TEST 4: Valid interval alternative
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {

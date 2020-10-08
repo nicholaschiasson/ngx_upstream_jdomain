@@ -3,13 +3,13 @@ use Test::Nginx::Socket 'no_plan';
 add_response_body_check(sub {
 	my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
 	if ($body eq "Pass") {
-		`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 	} elsif ($body eq "Pass 1") {
-		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 	} elsif ($body eq "Kill") {
-		`echo 'local-zone: "example.com" always_refuse' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo 'local-zone: "example.com" always_refuse' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 	} else {
-		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 	}
 	sleep(2);
 });
@@ -20,7 +20,7 @@ __DATA__
 
 === TEST 1: Dynamic upstream
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -46,7 +46,7 @@ location = / {
 ["Pass 1", "Pass 1", "Pass 2", "Pass 2", "Pass 1", "Pass 1", "Pass 2", "Pass 2"]
 === TEST 2: Dynamic SSL upstream
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -76,7 +76,7 @@ location = / {
 ["Pass 1", "Pass 1", "Pass 2", "Pass 2", "Pass 1", "Pass 1", "Pass 2", "Pass 2"]
 === TEST 3: Dynamic upstream with periodically failing DNS resolution
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -98,7 +98,7 @@ location = / {
 ["Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
 === TEST 4: Dynamic SSL upstream with periodically failing DNS resolution
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -122,7 +122,7 @@ location = / {
 ["Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass", "Pass"]
 === TEST 5: Dynamic upstream with periodically failing DNS resolution and backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -149,7 +149,7 @@ location = / {
 ["Pass", "Pass", "Backup", "Backup", "Pass", "Pass", "Backup", "Backup"]
 === TEST 6: Dynamic SSL upstream with periodically failing DNS resolution and backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -180,7 +180,7 @@ location = / {
 ["Pass", "Pass", "Backup", "Backup", "Pass", "Pass", "Backup", "Backup"]
 === TEST 7: Dynamic upstream with constantly refused DNS resolution with non-strict backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -203,7 +203,7 @@ location = / {
 ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
 === TEST 8: Dynamic SSL upstream with constantly refused DNS resolution with non-strict backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -228,7 +228,7 @@ location = / {
 ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
 === TEST 9: Dynamic upstream with constantly refused DNS resolution with strict backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -255,7 +255,7 @@ location = / {
 ["Kill", "Kill", "Backup", "Backup", "Kill", "Kill", "Backup", "Backup"]
 === TEST 10: Dynamic SSL upstream with constantly refused DNS resolution with strict backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -286,7 +286,7 @@ location = / {
 ["Kill", "Kill", "Backup", "Backup", "Kill", "Kill", "Backup", "Backup"]
 === TEST 11: Dynamic upstream with constantly refused DNS resolution with strict but no backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -308,7 +308,7 @@ location = / {
 ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
 === TEST 12: Dynamic SSL upstream with constantly refused DNS resolution with strict but no backup
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {

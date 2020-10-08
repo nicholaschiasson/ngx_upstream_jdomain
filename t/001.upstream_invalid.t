@@ -7,7 +7,7 @@ __DATA__
 
 === TEST 1: Invalid upstream with backup
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -30,7 +30,7 @@ location = / {
 ["Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup"]
 === TEST 2: Invalid SSL upstream with backup
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -55,7 +55,7 @@ location = / {
 ["Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup"]
 === TEST 3: Invalid upstream with backup but no server
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -72,7 +72,7 @@ location = / {
 [502, 502, 502, 502, 502, 502, 502, 502]
 === TEST 4: Invalid SSL upstream with backup but no server
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
@@ -91,7 +91,7 @@ location = / {
 THIS TEST MUST NOT BE FIRST! THERE SEEMS TO BE A BUG WITH 'must_die' WHICH
 CAUSES THE FRAMEWORK TO HANG IF THIS TEST GOES FIRST!
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {

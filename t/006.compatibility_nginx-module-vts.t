@@ -6,10 +6,10 @@ __DATA__
 
 === TEST 1: Virtual host traffic status
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.ca 1 A 127.0.0.4"' >> /etc/unbound_local_zone.conf &&
-echo 'local-data: "example.ca 1 A 127.0.0.5"' >> /etc/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.ca 1 A 127.0.0.4"' >> /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.ca 1 A 127.0.0.5"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 vhost_traffic_status_zone;
