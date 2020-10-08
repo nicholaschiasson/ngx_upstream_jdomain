@@ -296,7 +296,6 @@ location = / {
 [201, 201, 201, 202, 202, 202, 202, 202]
 --- response_body eval
 ["Interval", "Interval", "Interval", "Pass", "Pass", "Pass", "Pass", "Pass"]
---- ONLY
 === TEST 4: Invalid interval zero
 --- http_config
 resolver 127.0.0.88;

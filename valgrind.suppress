@@ -54,6 +54,45 @@
 }
 {
 	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	match-leak-kinds: definite
+	fun:malloc
+	fun:CRYPTO_zalloc
+	fun:SSL_SESSION_new
+	obj:/usr/lib64/libssl.so.1.1.1c
+	obj:/usr/lib64/libssl.so.1.1.1c
+	obj:/usr/lib64/libssl.so.1.1.1c
+	fun:SSL_do_handshake
+	fun:ngx_ssl_handshake
+	fun:ngx_http_upstream_ssl_init_connection
+	fun:ngx_http_upstream_send_request_handler
+	fun:ngx_http_upstream_handler
+	fun:ngx_epoll_process_events
+	fun:ngx_process_events_and_timers
+	fun:ngx_single_process_cycle
+	fun:main
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	match-leak-kinds: definite
+	fun:malloc
+	fun:CRYPTO_zalloc
+	fun:SSL_SESSION_new
+	obj:/usr/lib64/libssl.so.1.1.1c
+	obj:/usr/lib64/libssl.so.1.1.1c
+	obj:/usr/lib64/libssl.so.1.1.1c
+	obj:/usr/lib64/libssl.so.1.1.1c
+	fun:SSL_do_handshake
+	fun:ngx_ssl_handshake
+	fun:ngx_ssl_handshake_handler
+	fun:ngx_epoll_process_events
+	fun:ngx_process_events_and_timers
+	fun:ngx_single_process_cycle
+	fun:main
+}
+{
+	<insert_a_suppression_name_here>
 	Memcheck:Param
 	epoll_ctl(event)
 	fun:epoll_ctl
