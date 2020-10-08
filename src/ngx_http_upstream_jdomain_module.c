@@ -106,9 +106,11 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 {
 	ngx_http_upstream_jdomain_srv_conf_t *jcf;
 	ngx_http_upstream_jdomain_instance_t *instance;
-	ngx_http_upstream_rr_peer_t *peer, **peerp;
+	ngx_http_upstream_rr_peer_t *peer;
+	ngx_http_upstream_rr_peer_t **peerp;
 	ngx_http_upstream_rr_peers_t *peers;
-	ngx_uint_t i, j;
+	ngx_uint_t i;
+	ngx_uint_t j;
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "ngx_http_upstream_jdomain_module: init jdomain");
 
@@ -218,7 +220,8 @@ static void
 ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 {
 	ngx_http_upstream_jdomain_instance_t *instance;
-	ngx_uint_t i, naddrs_prev;
+	ngx_uint_t i;
+	ngx_uint_t naddrs_prev;
 	ngx_sockaddr_t *sockaddr;
 	u_char *name;
 	ngx_addr_t *addr;
@@ -316,7 +319,7 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdom
 
 	instance->conf.interval = 1;
 	instance->conf.max_ips = 4;
-	instance->conf.port = 80;
+	instance->conf.port = 80; /* NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
 
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
 
@@ -326,7 +329,6 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdom
 static ngx_int_t
 ngx_http_upstream_jdomain_init_instance_data(ngx_conf_t *cf, ngx_http_upstream_jdomain_instance_t *instance)
 {
-
 	instance->state.data.addrs = ngx_array_create(cf->pool, instance->conf.max_ips, sizeof(ngx_addr_t));
 	if (!instance->state.data.addrs) {
 		ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "ngx_http_upstream_jdomain_module: ngx_array_create addrs fail");
@@ -385,11 +387,13 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_http_upstream_jdomain_instance_t *instance;
 
 	ngx_addr_t *addr;
-	u_char *name, *errstr;
+	u_char *errstr;
+	u_char *name;
 	ngx_http_upstream_server_t *server;
 	ngx_sockaddr_t *sockaddr;
 
-	ngx_str_t *value, s;
+	ngx_str_t *value;
+	ngx_str_t s;
 	ngx_int_t num;
 	ngx_url_t u;
 	ngx_uint_t i;
@@ -430,9 +434,11 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		goto failure;
 	}
 	ngx_memzero(server, sizeof(ngx_http_upstream_server_t));
-	server->fail_timeout = 10; /* server default */
-	server->max_fails = 1;     /* server default */
-	server->weight = 1;        /* server default */
+	/* server defaults */
+	/* NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
+	server->fail_timeout = 10;
+	server->max_fails = 1;
+	server->weight = 1;
 
 	instance = ngx_http_upstream_jdomain_create_instance(cf, jcf);
 	if (!instance) {
@@ -449,8 +455,8 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	/* Parse arguments */
 	for (i = 2; i < cf->args->nelts; i++) {
 		if (ngx_strncmp(value[i].data, "interval=", 9) == 0) {
-			s.len = value[i].len - 9;
-			s.data = &value[i].data[9];
+			s.len = value[i].len - 9;   /* NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
+			s.data = &value[i].data[9]; /* NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
 			instance->conf.interval = ngx_parse_time(&s, 1);
 			if (instance->conf.interval < 1) {
 				goto invalid;
@@ -459,6 +465,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		}
 
 		if (ngx_strncmp(value[i].data, "max_ips=", 8) == 0) {
+			/* NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
 			num = ngx_atoi(value[i].data + 8, value[i].len - 8);
 			if (num < 1) {
 				goto invalid;
@@ -468,6 +475,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		}
 
 		if (ngx_strncmp(value[i].data, "port=", 5) == 0) {
+			/* NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
 			num = ngx_atoi(value[i].data + 5, value[i].len - 5);
 			if (num < 1 || num != (in_port_t)num) {
 				goto invalid;
@@ -476,6 +484,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			continue;
 		}
 
+		/* NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers) */
 		if (value[i].len == 6 && ngx_strncmp(value[i].data, "strict", 6) == 0) {
 			instance->conf.strict = 1;
 			continue;
