@@ -38,6 +38,7 @@ args = ["-rf", "bin"]
 
 [tasks.analyse]
 script_runner = "@shell"
+dependencies = ["docker"]
 command = "docker"
 args = [
 	"run",
