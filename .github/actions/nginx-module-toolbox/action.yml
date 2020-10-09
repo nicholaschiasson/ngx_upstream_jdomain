@@ -1,4 +1,22 @@
 name: Nginx Module Toolbox
+inputs:
+  entrypoint:
+    description: Dockerfile entrypoint.
+    required: true
+  imageBase:
+    description: Base docker image version.
+    required: true
+    default: amazonlinux-2
+  nginxVersion:
+    description: Nginx version.
+    required: true
+    default: 1.16.1
 runs:
-  using: docker
-  image: Dockerfile
+  using: composite
+  steps:
+    - id: build
+      run: docker build .github/actions/nginx-module-toolbox --build-arg IMAGE_BASE=${{ inputs.imageBase }} --build-arg NGINX_VERSION=${{ inputs.nginxVersion }} -t toolbox
+      shell: bash
+    - id: run
+      run: docker run --rm -v $(pwd):/github/workspace --workdir /github/workspace toolbox ${{ inputs.entrypoint }}
+      shell: bash

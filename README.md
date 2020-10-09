@@ -11,7 +11,23 @@ Instead, the DNS resolution needs to be prompted by a request for the given
 upstream. If nginx serves a connection bound for a jdomain upstream, and the
 configured `interval` has elapsed, then the module will perform a DNS lookup.
 
-**Important Note**: Due to the asynchronous nature of this module and the fact
+The module is compatible with other `upstream` scope directives. This means you
+may populate an `upstream` block with multiple `jdomain` directives, multiple
+`server` directives, `keepalive`, load balancing directives, etc. Note that
+unless another load balancing method is specified in the `upstream` block, this
+module makes use of the default round robin load balancing algorithm built into
+nginx core.
+
+**Important Note**: Should an alternate load balancing algorithm be specified,
+**it must come _before_ the jdomain directive in the upstream block!** If this
+is not followed, nginx **_will_** crash during runtime! This is because many
+other load balancing modules explicitly extend the built in round robin, and
+thus end up clobbering the jdomain initialization handlers, since jdomain is
+technically a load balancer module as well. While this may not be the case with
+all load balancer modules, it's better to stay on the safe side and place
+jdomain after.
+
+**Important Note**: Due to the non blocking nature of this module and the fact
 that its DNS resolution is triggered by incoming requests, the request that
 prompts a lookup will actually still be forwarded to the upstream that was
 resolved and cached before the DNS lookup happens. Depending on the scenario,
@@ -27,7 +43,7 @@ several features ahead.
 ## Installation
 
 [Build nginx](http://nginx.org/en/docs/configure.html) with this repository as
-a static module.
+a static or dynamic module.
 
 ```shell
 ./configure --add-module=/path/to/this/directory
@@ -50,54 +66,40 @@ upstream backend_02 {
 	jdomain example.com port=8080;
 }
 
-# Upstream with a fallback IP address to use in case of host not found or
-# format errors on DNS resolution.
-# Fallback defaults to same port used for the domain (which defaults to 80).
+# Upstream with a backup server to use in case of host not found or format
+# errors on DNS resolution.
 upstream backend_03 {
-	jdomain example.com fallback=127.0.0.2;
+	server 127.0.0.2 backup;
+	jdomain example.com;
 }
 
-# Upstream with fallback IP defaulting to port specified by port attribute.
-upstream backend_04  {
-	jdomain example.com port=8080 fallback=127.0.0.2;
-}
-
-# Upstream with fallback IP specifying its own port to use.
-upstream backend_05 {
-	jdomain example.com fallback=127.0.0.2:8080;
-}
-
-# Upstream which will use fallback for any and all DNS resolution errors.
-upstream backend_06 {
-	jdomain example.come fallback=127.0.0.2 strict;
+# Upstream which will use backup for any and all DNS resolution errors.
+upstream backend_04 {
+	server 127.0.0.2 backup;
+	jdomain example.com strict;
 }
 
 server {
 	listen 127.0.0.2:80;
 	return 502 'An error.';
 }
-
-server {
-	listen 127.0.0.2:8080;
-	return 502 'A different error.';
-}
 ```
 
 ## Synopsis
 
 ```
-Syntax: jdomain <domain-name> [port=80] [max_ips=20] [interval=1] [retry_off] [fallback= [strict]]
+Syntax: jdomain <domain-name> [port=80] [max_ips=4] [interval=1] [strict]
 Context: upstream
 Attributes:
 	port:       Backend's listening port.                                      (Default: 80)
-	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 20)
+	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 4)
 	interval:   How many seconds to resolve domain name.                       (Default: 1)
-	retry_off:  Do not retry if one IP fails.
-	fallback:   Optional IP and port to use if <domain-name> resolves no IPs,
-	            resolves with a host not found error, or a format error.
-	strict:     Forces use of fallback even in case of other resolution
-	            errors, such as timeouts, DNS server failures, connection
-	            refusals, etc.
+	strict:     Require the DNS resolution to succeed and return addresses,
+	            otherwise marks the underlying server and peers as down and
+	            forces use of other servers in the upstream block if there
+	            are any present. A failed resolution can be a timeout, DNS
+	            server failure, connection refusals, response with no
+	            addresses, etc.
 ```
 
 See https://www.nginx.com/resources/wiki/modules/domain_resolve/ for details.
@@ -181,6 +183,84 @@ You can run the test suite using the test task, like so:
 
 ```bash
 makers test
+```
+
+### Debugging
+
+We can use `valgrind` and `gdb` on nginx from inside the container.
+
+First open an interactive shell in the container with:
+
+```bash
+$ makers
+```
+
+We'll use that session to run `valgrind`:
+
+```bash
+$ valgrind --vgdb=full --vgdb-error=0 /github/workspace/bin/static/nginx -p/github/workspace/t/servroot -cconf/nginx.conf
+==15== Memcheck, a memory error detector
+==15== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==15== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==15== Command: /github/workspace/bin/static/nginx -p/github/workspace/t/servroot -cconf/nginx.conf
+==15==
+==15== (action at startup) vgdb me ...
+==15==
+==15== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==15==   /path/to/gdb /github/workspace/bin/static/nginx
+==15== and then give GDB the following command
+==15==   target remote | /usr/lib64/valgrind/../../bin/vgdb --pid=15
+==15== --pid is optional if only one valgrind process is running
+==15==
+```
+
+Next, find the container identifier so we can open another session inside it:
+
+```bash
+$ docker ps
+CONTAINER ID        IMAGE                                     COMMAND             CREATED             STATUS              PORTS                    NAMES
+55fab1e069ba        act-github-actions-nginx-module-toolbox   "bash"              4 seconds ago       Up 3 seconds        0.0.0.0:1984->1984/tcp   serene_newton
+```
+
+Use either the name or ID to execute a bash session inside the container:
+
+```bash
+$ docker exec -it serene_newton bash
+```
+
+We'll use this session to start `gdb` and target the valgrind gdb server we started in the other session:
+
+```bash
+$ gdb /github/workspace/bin/static/nginx
+GNU gdb (GDB) Red Hat Enterprise Linux 8.0.1-30.amzn2.0.3
+Copyright (C) 2017 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /github/workspace/bin/static/nginx...done.
+(gdb)
+```
+
+From the gdb prompt, target the valgrind process and begin debugging:
+
+```bash
+(gdb) target remote | /usr/lib64/valgrind/../../bin/vgdb --pid=15
+Remote debugging using | /usr/lib64/valgrind/../../bin/vgdb --pid=15
+relaying data between gdb and process 15
+warning: remote target does not support file transfer, attempting to access files from local filesystem.
+Reading symbols from /lib64/ld-linux-x86-64.so.2...(no debugging symbols found)...done.
+0x0000000004000ef0 in _start () from /lib64/ld-linux-x86-64.so.2
+Missing separate debuginfos, use: debuginfo-install glibc-2.26-35.amzn2.x86_64
+(gdb)
 ```
 
 ### Running GitHub Actions

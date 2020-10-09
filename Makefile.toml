@@ -7,6 +7,10 @@ args = [
 	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox/Dockerfile",
 	"-t",
 	"act-github-actions-nginx-module-toolbox:latest",
+	"--build-arg",
+	"IMAGE_BASE=amazonlinux-2",
+	"--build-arg",
+	"NGINX_VERSION=1.16.1",
 	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox"
 ]
 
@@ -20,6 +24,8 @@ args = [
 	"--rm",
 	"-itv",
 	"${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace",
+	"-p",
+	"1984:1984",
 	"act-github-actions-nginx-module-toolbox",
 	"bash"
 ]
@@ -32,6 +38,7 @@ args = ["-rf", "bin"]
 
 [tasks.analyse]
 script_runner = "@shell"
+dependencies = ["docker"]
 command = "docker"
 args = [
 	"run",
