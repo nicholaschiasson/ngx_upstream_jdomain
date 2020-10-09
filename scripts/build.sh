@@ -8,7 +8,7 @@ SRC_DIR=/src/nginx
 MOD_DIR=/src/modules
 
 NGINX_VERSION=$(cat ${SRC_DIR}/src/core/nginx.h | grep "#define NGINX_VERSION" | cut -d\" -f2)
-PATCH_VERSION=$(ls ${MOD_DIR}/nginx_upstream_check_module/check_*.patch | sort -Vr | while read f
+PATCH_VERSION=$(ls ${MOD_DIR}/nginx_upstream_check_module/check_*+.patch | sort -Vr | while read f
 do
 	VERS=${f##*_}
 	VERS=${VERS%.*}
