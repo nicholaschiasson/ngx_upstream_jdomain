@@ -44,11 +44,11 @@ location = /status {
 ["Pass", "Pass",
 "0,upstream_test,127.0.0.6:8080,down,0,[0-9]+,http,0
 1,upstream_test,127.0.0.2:8000,down,0,[0-9]+,http,0
-2,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-3,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-4,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
+2,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
+3,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
+4,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
 5,upstream_test,127.0.0.3:8000,up,[0-9]+,0,http,0
-6,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-7,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
-8,upstream_test,0.0.0.0:0,down,0,[0-9]+,http,0
+6,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
+7,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
+8,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
 "]

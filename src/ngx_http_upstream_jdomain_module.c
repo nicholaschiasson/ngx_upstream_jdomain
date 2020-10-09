@@ -109,7 +109,7 @@ ngx_module_t ngx_http_upstream_jdomain_module = { NGX_MODULE_V1,
 static struct sockaddr_in NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN = { 0 };
 static const ngx_addr_t NGX_JDOMAIN_INVALID_ADDR = { (struct sockaddr *)(&NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN),
 	                                                   sizeof(struct sockaddr_in),
-	                                                   ngx_string("0.0.0.0:0") };
+	                                                   ngx_string("NGX_UPSTREAM_JDOMAIN_BUFFER") };
 
 /*
  * The upstream initialization handler, called once at the beginning of nginx runtime to initialize the module. We register
