@@ -222,7 +222,7 @@ CONTAINER ID        IMAGE                                     COMMAND           
 55fab1e069ba        act-github-actions-nginx-module-toolbox   "bash"              4 seconds ago       Up 3 seconds        0.0.0.0:1984->1984/tcp   serene_newton
 ```
 
-Use either the name of ID to execute a bash session inside the container:
+Use either the name or ID to execute a bash session inside the container:
 
 ```bash
 $ docker exec -it serene_newton bash
