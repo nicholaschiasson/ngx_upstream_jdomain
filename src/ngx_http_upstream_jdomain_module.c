@@ -50,8 +50,8 @@ typedef struct
 {
 	struct
 	{
-		ngx_http_upstream_init_pt default_init;
-		ngx_http_upstream_init_peer_pt default_init_peer;
+		ngx_http_upstream_init_pt original_init;
+		ngx_http_upstream_init_peer_pt original_init_peer;
 	} handlers;
 	ngx_array_t *instances;
 } ngx_http_upstream_jdomain_srv_conf_t;
@@ -111,6 +111,11 @@ static const ngx_addr_t NGX_JDOMAIN_INVALID_ADDR = { (struct sockaddr *)(&NGX_JD
 	                                                   sizeof(struct sockaddr_in),
 	                                                   ngx_string("0.0.0.0:0") };
 
+/*
+ * The upstream initialization handler, called once at the beginning of nginx runtime to initialize the module. We register
+ * this function to hook into the upstream initialization and discover load balancer peers, since those are derived from the
+ * upstream's server structure and used to actually connect with upstreams.
+ */
 static ngx_int_t
 ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 {
@@ -126,15 +131,18 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 
 	jcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
 
-	if (jcf->handlers.default_init(cf, us) != NGX_OK) {
+	/* Call original init handler */
+	if (jcf->handlers.original_init(cf, us) != NGX_OK) {
 		return NGX_ERROR;
 	}
 
-	jcf->handlers.default_init_peer = us->peer.init;
+	/* Intercept upstream peer init handler */
+	jcf->handlers.original_init_peer = us->peer.init;
 	us->peer.init = ngx_http_upstream_init_jdomain_peer;
 
 	instance = jcf->instances->elts;
 	peers = us->peer.data;
+	/* Discover and cache peer pointers which are derived from our jdomain addresses */
 	for (i = 0; i < jcf->instances->nelts; i++) {
 		peerp = instance[i].state.data.peerps->elts;
 		j = 0;
@@ -151,16 +159,23 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 			return NGX_ERROR;
 		}
 
+		/* In the case we resolve less IPs than max_ips, we set the remaining peers to down state */
 		for (j = instance[i].state.data.naddrs; j < instance[i].conf.max_ips; j++) {
 			peerp[j]->down = 1;
 		}
 
+		/* Now we can undo our hack from the module entry point and store the correct number of addresses */
 		instance[i].state.data.server->naddrs = instance[i].state.data.naddrs;
 	}
 
 	return NGX_OK;
 }
 
+/*
+ * The upstream peer initialization handler, called per request to this upstream. We register this function to hook into the
+ * upstream peer initialization so we can check if the intervals have elapsed to resolve any of the domains associated with our
+ * jdomain instances. If it is the case, then we attempt to initiate a DNS resolution using the configured resolver.
+ */
 static ngx_int_t
 ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv_conf_t *us)
 {
@@ -175,7 +190,8 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv
 
 	jcf = ngx_http_conf_upstream_srv_conf(us, ngx_http_upstream_jdomain_module);
 
-	rc = jcf->handlers.default_init_peer(r, us);
+	/* Call original init peer handler */
+	rc = jcf->handlers.original_init_peer(r, us);
 	if (rc != NGX_OK) {
 		goto end;
 	}
@@ -183,6 +199,7 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv
 	clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 	instance = jcf->instances->elts;
 	for (i = 0; i < jcf->instances->nelts; i++) {
+		/* Check if this jdomain instance is in the middle of processing a domain resolve or if it's not time yet to start one */
 		if (instance[i].state.resolve.status == NGX_JDOMAIN_STATUS_WAIT ||
 		    ngx_time() <= instance[i].state.resolve.access + instance[i].conf.interval) {
 			continue;
@@ -190,6 +207,7 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv
 
 		ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ngx_http_upstream_jdomain_module: update from DNS cache");
 
+		/* Initialize resolver context with our domain name, a handler function, and our configured timeout */
 		ctx = ngx_resolve_start(clcf->resolver, NULL);
 		if (!ctx) {
 			ngx_log_error(NGX_LOG_ALERT,
@@ -213,6 +231,7 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv
 		ctx->data = &instance[i];
 		ctx->timeout = clcf->resolver_timeout;
 
+		/* Initiate the domain name resolution and mark this instance as waiting */
 		rc = ngx_resolve_name(ctx);
 		if (rc != NGX_OK) {
 			ngx_log_error(
@@ -226,6 +245,10 @@ end:
 	return rc;
 }
 
+/*
+ * The resolver context handler, called on completion of the domain name resolution attempt. We register this function to
+ * update the state data of a jdomain instance by overwriting the cached IP addresses with those newly resolved.
+ */
 static void
 ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 {
@@ -239,6 +262,7 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 
 	instance = (ngx_http_upstream_jdomain_instance_t *)ctx->data;
 
+	/* Determine if there was an error and if so, should we mark the instance as down or not */
 	if (ctx->state || ctx->naddrs == 0) {
 		instance->state.data.server->down =
 		  instance->parent->servers->nelts > 1 &&
@@ -261,6 +285,7 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 	sockaddr = instance->state.data.sockaddrs->elts;
 	naddrs_prev = instance->state.data.server->naddrs;
 	instance->state.data.server->naddrs = 0;
+	/* Copy the resolved sockaddrs and address names (IP:PORT) into our state data buffers, marking associated peers up */
 	for (i = 0; i < ngx_min(ctx->naddrs, instance->conf.max_ips); i++) {
 		addr[i].sockaddr = &sockaddr[i].sockaddr;
 		addr[i].socklen = peerp[i]->socklen = ctx->addrs[i].socklen;
@@ -274,6 +299,7 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 		instance->state.data.server->naddrs++;
 	}
 	instance->state.data.naddrs = instance->state.data.server->naddrs;
+	/* Copy the sockaddr and name of the invalid address (0.0.0.0:0) into the remaining buffers, marking associated peers down */
 	for (i = instance->state.data.naddrs; i < ngx_min(naddrs_prev, instance->conf.max_ips); i++) {
 		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
 		addr[i].name.len = peerp[i]->name.len = NGX_JDOMAIN_INVALID_ADDR.name.len;
@@ -285,14 +311,15 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 	}
 
 end:
+	/* Release the resolver context and mark the completion in the instance state */
 	ngx_resolve_name_done(ctx);
-
 	instance->state.resolve.access = ngx_time();
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
 }
 
 /*
- * Called before the main entry point. This function initializes the module state data.
+ * Called before the main entry point. This function initializes the module state data structure to be passed to the module
+ * entry point by nginx.
  */
 static void *
 ngx_http_upstream_jdomain_create_conf(ngx_conf_t *cf)
@@ -308,6 +335,10 @@ ngx_http_upstream_jdomain_create_conf(ngx_conf_t *cf)
 	return conf;
 }
 
+/*
+ * This function allocates memory for a jdomain instance. This instance contains the config values from the user as well as
+ * pointers to memory buffers for state data.
+ */
 static void *
 ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdomain_srv_conf_t *conf)
 {
@@ -336,6 +367,10 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdom
 	return instance;
 }
 
+/*
+ * This function allocates memory for the buffers used for state data of a jdomain instance. The buffers will have a size equal
+ * to the configured number of maximum IPs.
+ */
 static ngx_int_t
 ngx_http_upstream_jdomain_init_instance_data(ngx_conf_t *cf, ngx_http_upstream_jdomain_instance_t *instance)
 {
@@ -387,7 +422,8 @@ ngx_http_upstream_jdomain_init_instance_data(ngx_conf_t *cf, ngx_http_upstream_j
 }
 
 /*
- * Module entrypoint. This function performs initial (blocking) domain name resolution and finishes initializing state data.
+ * Module entrypoint. This function parses the config directive arguments, performs the initial (blocking) domain name
+ * resolution, and finishes initializing state data.
  */
 static char *
 ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
@@ -424,16 +460,18 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	uscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_upstream_module);
 	jcf = ngx_http_conf_upstream_srv_conf(uscf, ngx_http_upstream_jdomain_module);
 
-	jcf->handlers.default_init =
+	/* Intercept upstream init handler and set upstream flags */
+	jcf->handlers.original_init =
 	  (uscf->peer.init_upstream && uscf->peer.init_upstream != ngx_http_upstream_init_jdomain)
 	    ? uscf->peer.init_upstream
-	    : (jcf->handlers.default_init ? jcf->handlers.default_init : ngx_http_upstream_init_round_robin);
+	    : (jcf->handlers.original_init ? jcf->handlers.original_init : ngx_http_upstream_init_round_robin);
 
 	uscf->peer.init_upstream = ngx_http_upstream_init_jdomain;
 	uscf->flags = NGX_HTTP_UPSTREAM_CREATE | NGX_HTTP_UPSTREAM_WEIGHT | NGX_HTTP_UPSTREAM_MAX_FAILS |
 	              NGX_HTTP_UPSTREAM_FAIL_TIMEOUT | NGX_HTTP_UPSTREAM_DOWN | NGX_HTTP_UPSTREAM_BACKUP |
 	              NGX_HTTP_UPSTREAM_MAX_CONNS;
 
+	/* Create underlying upstream server structure and set default values */
 	uscf->servers = uscf->servers ? uscf->servers : ngx_array_create(cf->pool, 1, sizeof(ngx_http_upstream_server_t));
 	if (!uscf->servers) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_array_create servers fail");
@@ -445,11 +483,11 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		goto failure;
 	}
 	ngx_memzero(server, sizeof(ngx_http_upstream_server_t));
-	/* server defaults */
 	server->fail_timeout = NGX_JDOMAIN_DEFAULT_SERVER_FAIL_TIMEOUT;
 	server->max_fails = NGX_JDOMAIN_DEFAULT_SERVER_MAX_FAILS;
 	server->weight = NGX_JDOMAIN_DEFAULT_SERVER_WEIGHT;
 
+	/* Allocate space for state of an instance of a jdomain upstream */
 	instance = ngx_http_upstream_jdomain_create_instance(cf, jcf);
 	if (!instance) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: ngx_http_upstream_jdomain_create_instance fail");
@@ -530,6 +568,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	addr = server->addrs = instance->state.data.addrs->elts;
 	name = instance->state.data.names->elts;
 	sockaddr = instance->state.data.sockaddrs->elts;
+	/* Copy the resolved sockaddrs and address names (IP:PORT) into our state data buffers */
 	for (i = 0; i < ngx_min(u.naddrs, instance->conf.max_ips); i++) {
 		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
 		addr[i].name.len = u.addrs[i].name.len;
@@ -540,6 +579,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		server->naddrs++;
 	}
 	instance->state.data.naddrs = server->naddrs;
+	/* Copy the sockaddr and address name of the invalid address (0.0.0.0:0) into the remaining buffers */
 	for (i = instance->state.data.naddrs; i < instance->conf.max_ips; i++) {
 		addr[i].name.data = &name[i * NGX_SOCKADDR_STRLEN];
 		addr[i].name.len = NGX_JDOMAIN_INVALID_ADDR.name.len;
