@@ -12,6 +12,7 @@ echo "nameserver 127.0.0.88" > /etc/resolv.conf
 unbound-control -c /etc/unbound/unbound.conf start
 unbound-control verbosity 3
 
+export TEST_NGINX_SLEEP=1
 export TEST_NGINX_USE_VALGRIND=1
 # export TEST_NGINX_CHECK_LEAK=1
 
