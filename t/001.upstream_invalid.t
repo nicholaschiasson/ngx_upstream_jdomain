@@ -101,3 +101,16 @@ upstream upstream_test {
 --- must_die
 --- error_log
 host not found in upstream "example.com"
+=== TEST 6: Invalid upstream with down backup
+--- init
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
+--- http_config
+resolver 127.0.0.88;
+upstream upstream_test {
+	server 127.0.0.3:12345 backup down;
+	jdomain example.com port=8000;
+}
+--- config
+--- must_die
+--- error_log
+host not found in upstream "example.com"

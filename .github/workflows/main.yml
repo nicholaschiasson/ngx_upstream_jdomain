@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          # - alpine-3
+          - alpine-3
           - amazonlinux-2
           - centos-8
           - ubuntu-20.04
@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          # - alpine-3
+          - alpine-3
           - amazonlinux-2
           - centos-8
           - ubuntu-20.04
@@ -57,7 +57,7 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          # - alpine-3
+          - alpine-3
           - amazonlinux-2
           - centos-8
           - ubuntu-20.04
@@ -87,7 +87,7 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          # - alpine-3
+          - alpine-3
           - amazonlinux-2
           - centos-8
           - ubuntu-20.04
