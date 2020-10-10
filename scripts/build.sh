@@ -2,46 +2,57 @@
 
 set -ex
 
+function get_compatible_version {
+	nginx_version=$1
+	version_list=${@:2}
+	nginx_maj=$(echo $nginx_version | cut -d. -f1)
+	nginx_min=$(echo $nginx_version | cut -d. -f2)
+	nginx_pat=$(echo $nginx_version | cut -d. -f3)
+	for v in $version_list
+	do
+		echo $v
+	done | sort -Vr | while read v
+	do
+		patch_maj=$(echo $v | cut -d. -f1)
+		patch_min=$(echo $v | cut -d. -f2)
+		patch_pat=$(echo $v | cut -d. -f3)
+		if [ "$nginx_maj" -gt "$patch_maj" ]
+		then
+			echo $v
+			break
+		elif [ "$nginx_maj" -eq "$patch_maj" ]
+		then
+			if [ "$nginx_min" -gt "$patch_min" ]
+			then
+				echo $v
+				break
+			elif [ "$nginx_min" -eq "$patch_min" ]
+			then
+				if [ "$nginx_pat" -ge "$patch_pat" ]
+				then
+					echo $v
+					break
+				fi
+			fi
+		fi
+	done
+}
+
 source .env
 
 SRC_DIR=/src/nginx
+PAT_DIR=/src/patches
 MOD_DIR=/src/modules
 
 NGINX_VERSION=$(cat ${SRC_DIR}/src/core/nginx.h | grep "#define NGINX_VERSION" | cut -d\" -f2)
-PATCH_VERSION=$(ls ${MOD_DIR}/nginx_upstream_check_module/check_*+.patch | sort -Vr | while read f
-do
-	VERS=${f##*_}
-	VERS=${VERS%.*}
-	VERS=${VERS%%+*}
-	NGINX_MAJ=$(echo $NGINX_VERSION | cut -d. -f1)
-	NGINX_MIN=$(echo $NGINX_VERSION | cut -d. -f2)
-	NGINX_PAT=$(echo $NGINX_VERSION | cut -d. -f3)
-	PATCH_MAJ=$(echo $VERS | cut -d. -f1)
-	PATCH_MIN=$(echo $VERS | cut -d. -f2)
-	PATCH_PAT=$(echo $VERS | cut -d. -f3)
-	if [ "$NGINX_MAJ" -gt "$PATCH_MAJ" ]
-	then
-		echo $VERS
-		break
-	elif [ "$NGINX_MAJ" -eq "$PATCH_MAJ" ]
-	then
-		if [ "$NGINX_MIN" -gt "$PATCH_MIN" ]
-		then
-			echo $VERS
-			break
-		elif [ "$NGINX_MIN" -eq "$PATCH_MIN" ]
-		then
-			if [ "$NGINX_PAT" -ge "$PATCH_PAT" ]
-			then
-				echo $VERS
-				break
-			fi
-		fi
-	fi
-done)
+NOPOOL_PATCH_VERSION=$(get_compatible_version ${NGINX_VERSION} $(ls ${PAT_DIR}/no-pool-nginx/*.patch | grep -oE [0-9]+\.[0-9]+\.[0-9]+))
+CHECK_PATCH_VERSION=$(get_compatible_version ${NGINX_VERSION} $(ls ${MOD_DIR}/nginx_upstream_check_module/check*.patch | grep -oE [0-9]+\.[0-9]+\.[0-9]+))
 
 pushd ${SRC_DIR}
-patch -p1 < ${MOD_DIR}/nginx_upstream_check_module/check_${PATCH_VERSION}+.patch
+sed -i.bak "s/#define nginx_version.*/$(cat ${SRC_DIR}/src/core/nginx.h | grep "#define nginx_version")/" ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
+sed -i.bak "s/${NOPOOL_PATCH_VERSION}/${NGINX_VERSION}/" ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
+patch -p1 < ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
+patch -p1 < ${MOD_DIR}/nginx_upstream_check_module/check_${CHECK_PATCH_VERSION}+.patch
 popd
 
 for type in dynamic static
