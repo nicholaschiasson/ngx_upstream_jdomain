@@ -47,4 +47,4 @@ location /status {
 [201, 202, 401, 402, 201, 202, 401, 200]
 --- response_body_like eval
 ["Pass 1", "Pass 2", "Pass 3", "Pass 4", "Pass 1", "Pass 2", "Pass 3",
-'^.*"upstreamZones":\{"upstream_test":\[\{"server":"127.0.0.2:8000","requestCounter":2,"inBytes":108,"outBytes":306,"responses":\{"1xx":0,"2xx":2,"3xx":0,"4xx":0,"5xx":0\},.*?\{"server":"127.0.0.4:8000","requestCounter":2,"inBytes":108,"outBytes":316,"responses":\{"1xx":0,"2xx":0,"3xx":0,"4xx":2,"5xx":0\},.*$']
+'^.*"upstreamZones":\{"upstream_test":\[\{"server":"127.0.0.2:8000","requestCounter":2,"inBytes":\d+,"outBytes":\d+,"responses":\{"1xx":0,"2xx":2,"3xx":0,"4xx":0,"5xx":0\},.*?\{"server":"127.0.0.4:8000","requestCounter":2,"inBytes":\d+,"outBytes":\d+,"responses":\{"1xx":0,"2xx":0,"3xx":0,"4xx":2,"5xx":0\},.*$']
