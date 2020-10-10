@@ -284,7 +284,55 @@ location = / {
 [200, 200, 999, 999, 200, 200, 999, 999]
 --- response_body eval
 ["Kill", "Kill", "Backup", "Backup", "Kill", "Kill", "Backup", "Backup"]
-=== TEST 11: Dynamic upstream with constantly refused DNS resolution with strict but no backup
+=== TEST 11: Dynamic upstream with constantly refused DNS resolution with strict down backup
+--- init
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
+--- http_config
+resolver 127.0.0.88;
+upstream upstream_test {
+	server 127.0.0.3:8000 backup down;
+	jdomain example.com port=8000 strict;
+}
+server {
+	listen 127.0.0.2:8000;
+	return 200 'Kill';
+}
+--- config
+location = / {
+	proxy_pass http://upstream_test;
+}
+--- request eval
+["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
+--- error_code eval
+[200, 200, 200, 200, 200, 200, 200, 200]
+--- response_body eval
+["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
+=== TEST 12: Dynamic SSL upstream with constantly refused DNS resolution with strict down backup
+--- init
+`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
+--- http_config
+resolver 127.0.0.88;
+upstream upstream_test {
+	server 127.0.0.3:8000 backup down;
+	jdomain example.com port=8000 strict;
+}
+server {
+	listen 127.0.0.2:8000 ssl;
+	ssl_certificate /etc/ssl/nginx/test/cert.pem;
+	ssl_certificate_key /etc/ssl/nginx/test/key.pem;
+	return 200 'Kill';
+}
+--- config
+location = / {
+	proxy_pass https://upstream_test;
+}
+--- request eval
+["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
+--- error_code eval
+[200, 200, 200, 200, 200, 200, 200, 200]
+--- response_body eval
+["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
+=== TEST 13: Dynamic upstream with constantly refused DNS resolution with strict but no backup
 --- init
 `echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
@@ -306,7 +354,7 @@ location = / {
 [200, 200, 200, 200, 200, 200, 200, 200]
 --- response_body eval
 ["Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill", "Kill"]
-=== TEST 12: Dynamic SSL upstream with constantly refused DNS resolution with strict but no backup
+=== TEST 14: Dynamic SSL upstream with constantly refused DNS resolution with strict but no backup
 --- init
 `echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
