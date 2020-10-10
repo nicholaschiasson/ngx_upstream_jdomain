@@ -254,7 +254,9 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 {
 	ngx_http_upstream_jdomain_instance_t *instance;
 	ngx_uint_t i;
+	ngx_uint_t exists_alt_server;
 	ngx_uint_t naddrs_prev;
+	ngx_http_upstream_server_t *server;
 	ngx_sockaddr_t *sockaddr;
 	u_char *name;
 	ngx_addr_t *addr;
@@ -262,11 +264,19 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 
 	instance = (ngx_http_upstream_jdomain_instance_t *)ctx->data;
 
+	exists_alt_server = 0;
+	server = instance->parent->servers->elts;
+	for (i = 0; i < instance->parent->servers->nelts; i++) {
+		if (&server[i] != instance->state.data.server && !server[i].down) {
+			exists_alt_server = 1;
+			break;
+		}
+	}
+
 	/* Determine if there was an error and if so, should we mark the instance as down or not */
 	if (ctx->state || ctx->naddrs == 0) {
 		instance->state.data.server->down =
-		  instance->parent->servers->nelts > 1 &&
-		  (instance->conf.strict || ctx->state == NGX_RESOLVE_FORMERR || ctx->state == NGX_RESOLVE_NXDOMAIN);
+		  exists_alt_server && (instance->conf.strict || ctx->state == NGX_RESOLVE_FORMERR || ctx->state == NGX_RESOLVE_NXDOMAIN);
 		ngx_log_error((instance->state.data.server->down ? NGX_LOG_WARN : NGX_LOG_ERR),
 		              ctx->resolver->log,
 		              0,
@@ -435,7 +445,9 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_addr_t *addr;
 	u_char *errstr;
 	u_char *name;
+	ngx_uint_t exists_alt_server;
 	ngx_http_upstream_server_t *server;
+	ngx_http_upstream_server_t *server_iter;
 	ngx_sockaddr_t *sockaddr;
 
 	ngx_str_t *value;
@@ -556,10 +568,19 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	u.url = value[1];
 	u.default_port = instance->conf.port;
 
+	exists_alt_server = 0;
+	server_iter = instance->parent->servers->elts;
+	for (i = 0; i < instance->parent->servers->nelts; i++) {
+		if (&server_iter[i] != server && !server_iter[i].down) {
+			exists_alt_server = 1;
+			break;
+		}
+	}
+
 	/* Initial domain name resolution */
 	if (ngx_parse_url(cf->temp_pool, &u) != NGX_OK) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
-		if (uscf->servers->nelts < 2) {
+		if (!exists_alt_server) {
 			goto failure;
 		}
 		ngx_conf_log_error(NGX_LOG_WARN, cf, 0, (const char *)errstr);
