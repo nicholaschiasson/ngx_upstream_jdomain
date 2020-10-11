@@ -4,13 +4,13 @@ add_response_body_check(sub {
 	my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
 	if ($body eq "Interval") {
 		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
-		sleep(2);
+		sleep(4);
 	} elsif ($body eq "Flip") {
 		`echo 'local-data: "example.com 1 A 127.0.0.3"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
-		# sleep(1);
+		sleep(1);
 	} elsif ($body eq "Flop") {
 		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
-		# sleep(1);
+		sleep(1);
 	}
 });
 

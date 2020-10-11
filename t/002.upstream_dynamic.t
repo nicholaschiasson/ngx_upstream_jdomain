@@ -11,7 +11,7 @@ add_response_body_check(sub {
 	} else {
 		`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 	}
-	sleep(1);
+	sleep(2);
 });
 
 run_tests();

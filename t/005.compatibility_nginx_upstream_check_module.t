@@ -1,7 +1,7 @@
 use Test::Nginx::Socket 'no_plan';
 
 add_response_body_check(sub {
-	sleep(2);
+	sleep(4);
 });
 
 master_on();
