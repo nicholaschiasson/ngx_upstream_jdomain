@@ -1,4 +1,5 @@
 [tasks.docker]
+script_runner = "@shell"
 command = "docker"
 args = [
 	"build",
@@ -6,7 +7,27 @@ args = [
 	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox/Dockerfile",
 	"-t",
 	"act-github-actions-nginx-module-toolbox:latest",
+	"--build-arg",
+	"IMAGE_BASE=amazonlinux-2",
+	"--build-arg",
+	"NGINX_VERSION=1.16.1",
 	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox"
+]
+
+[tasks.default]
+clear = true
+dependencies = ["docker"]
+script_runner = "@shell"
+command = "docker"
+args = [
+	"run",
+	"--rm",
+	"-itv",
+	"${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace",
+	"-p",
+	"1984:1984",
+	"act-github-actions-nginx-module-toolbox",
+	"bash"
 ]
 
 [tasks.clean]
@@ -16,6 +37,8 @@ command = "rm"
 args = ["-rf", "bin"]
 
 [tasks.analyse]
+script_runner = "@shell"
+dependencies = ["docker"]
 command = "docker"
 args = [
 	"run",
@@ -47,6 +70,7 @@ script = [
 [tasks.build]
 clear = true
 dependencies = ["clean", "format"]
+script_runner = "@shell"
 command = "docker"
 args = [
 	"run",
@@ -70,6 +94,7 @@ run_task = "build"
 [tasks.test]
 clear = true
 dependencies = ["conditional-build"]
+script_runner = "@shell"
 command = "docker"
 args = [
 	"run",

@@ -5,35 +5,14 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: Invalid upstream with fallback
+=== TEST 1: Invalid upstream with backup
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3;
-}
-server {
-	listen 127.0.0.3:8000;
-	return 999 'Backup';
-}
---- config
-location = / {
-	proxy_pass http://upstream_test;
-}
---- request
-GET /
---- error_code: 999
---- response_body: Backup
---- error_log
-host not found in upstream "example.com", using fallback address "127.0.0.3:8000"
-=== TEST 2: Invalid upstream with fallback specifying port number
---- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
---- http_config
-resolver 127.0.0.88;
-upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	server 127.0.0.3:12345 backup;
+	jdomain example.com port=8000;
 }
 server {
 	listen 127.0.0.3:12345;
@@ -43,37 +22,93 @@ server {
 location = / {
 	proxy_pass http://upstream_test;
 }
---- request
-GET /
---- error_code: 999
---- response_body: Backup
---- error_log
-host not found in upstream "example.com", using fallback address "127.0.0.3:12345"
-=== TEST 3: Invalid upstream with fallback but no server
+--- request eval
+["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
+--- error_code eval
+[999, 999, 999, 999, 999, 999, 999, 999]
+--- response_body eval
+["Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup"]
+=== TEST 2: Invalid SSL upstream with backup
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
+resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off fallback=127.0.0.3:12345;
+	server 127.0.0.3:12345 backup;
+	jdomain example.com port=8000;
+}
+server {
+	listen 127.0.0.3:12345 ssl;
+	ssl_certificate /etc/ssl/nginx/test/cert.pem;
+	ssl_certificate_key /etc/ssl/nginx/test/key.pem;
+	return 999 'Backup';
+}
+--- config
+location = / {
+	proxy_pass https://upstream_test;
+}
+--- request eval
+["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
+--- error_code eval
+[999, 999, 999, 999, 999, 999, 999, 999]
+--- response_body eval
+["Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup", "Backup"]
+=== TEST 3: Invalid upstream with backup but no server
+--- init
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
+--- http_config
+resolver 127.0.0.88;
+upstream upstream_test {
+	server 127.0.0.3:12345 backup;
+	jdomain example.com port=8000;
 }
 --- config
 location = / {
 	proxy_pass http://upstream_test;
 }
---- request
-GET /
---- error_code: 502
---- error_log
-host not found in upstream "example.com", using fallback address "127.0.0.3:12345"
-=== TEST 4: Invalid upstream without fallback
-THIS TEST MUST NOT BE FIRST! THERE SEEMS TO BE A BUG WITH 'must_die' WHICH
-CAUSES THE FRAMEWORK TO HANG IF THIS TEST GOES FIRST!
+--- request eval
+["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
+--- error_code eval
+[502, 502, 502, 502, 502, 502, 502, 502]
+=== TEST 4: Invalid SSL upstream with backup but no server
 --- init
-`echo > /etc/unbound_local_zone.conf && unbound-control reload` or die $!;
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000 retry_off;
+	server 127.0.0.3:12345 backup;
+	jdomain example.com port=8000;
+}
+--- config
+location = / {
+	proxy_pass https://upstream_test;
+}
+--- request eval
+["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
+--- error_code eval
+[502, 502, 502, 502, 502, 502, 502, 502]
+=== TEST 5: Invalid upstream without backup
+THIS TEST MUST NOT BE FIRST! THERE SEEMS TO BE A BUG WITH 'must_die' WHICH
+CAUSES THE FRAMEWORK TO HANG IF THIS TEST GOES FIRST!
+--- init
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
+--- http_config
+resolver 127.0.0.88;
+upstream upstream_test {
+	jdomain example.com port=8000;
+}
+--- config
+--- must_die
+--- error_log
+host not found in upstream "example.com"
+=== TEST 6: Invalid upstream with down backup
+--- init
+`echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
+--- http_config
+resolver 127.0.0.88;
+upstream upstream_test {
+	server 127.0.0.3:12345 backup down;
+	jdomain example.com port=8000;
 }
 --- config
 --- must_die
