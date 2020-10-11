@@ -49,9 +49,9 @@ NOPOOL_PATCH_VERSION=$(get_compatible_version ${NGINX_VERSION} $(ls ${PAT_DIR}/n
 CHECK_PATCH_VERSION=$(get_compatible_version ${NGINX_VERSION} $(ls ${MOD_DIR}/nginx_upstream_check_module/check*.patch | grep -oE [0-9]+\.[0-9]+\.[0-9]+))
 
 pushd ${SRC_DIR}
-sed -i.bak "s/#define nginx_version.*/$(cat ${SRC_DIR}/src/core/nginx.h | grep "#define nginx_version")/" ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
-sed -i.bak "s/${NOPOOL_PATCH_VERSION}/${NGINX_VERSION}/" ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
-patch -p1 < ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
+# sed -i.bak "s/#define nginx_version.*/$(cat ${SRC_DIR}/src/core/nginx.h | grep "#define nginx_version")/" ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
+# sed -i.bak "s/${NOPOOL_PATCH_VERSION}/${NGINX_VERSION}/" ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
+# patch -p1 < ${PAT_DIR}/no-pool-nginx/nginx-${NOPOOL_PATCH_VERSION}-no_pool.patch
 patch -p1 < ${MOD_DIR}/nginx_upstream_check_module/check_${CHECK_PATCH_VERSION}+.patch
 popd
 
