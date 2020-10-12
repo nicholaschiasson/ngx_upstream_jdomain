@@ -110,7 +110,31 @@ jobs:
           entrypoint: bash ./scripts/test.sh
           imageBase: ${{ matrix.imageBase }}
           nginxVersion: ${{ matrix.nginxVersion }}
-      - name: LeakCheck
+  leak:
+    runs-on: ubuntu-latest
+    name: Leak Check
+    needs: build
+    strategy:
+      matrix:
+        imageBase:
+          - alpine-3
+          - amazonlinux-2
+          - centos-8
+          - ubuntu-20.04
+        nginxVersion:
+          - 1.14.2
+          - 1.16.1
+          - 1.18.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download Artifacts
+        if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
+        uses: actions/download-artifact@v2
+        with:
+          name: nginx-${{ matrix.imageBase }}-${{ matrix.nginxVersion }}
+          path: bin
+      - name: Leak Check
         uses: ./.github/actions/nginx-module-toolbox
         with:
           entrypoint: bash ./scripts/leak.sh
