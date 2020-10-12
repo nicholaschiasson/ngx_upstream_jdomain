@@ -95,6 +95,8 @@ upstream upstream_test {
 location = / {
 	proxy_pass http://upstream_test;
 }
+--- request
+GET /
 --- must_die
 --- error_log
 invalid number of arguments in "jdomain" directive
@@ -128,6 +130,8 @@ upstream upstream_test {
 	jdomain example.com port=0;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=0"
@@ -139,6 +143,8 @@ upstream upstream_test {
 	jdomain example.com port=-1;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=-1"
@@ -150,6 +156,8 @@ upstream upstream_test {
 	jdomain example.com port=99999999;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=99999999"
@@ -161,6 +169,8 @@ upstream upstream_test {
 	jdomain example.com port=example;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=example"
@@ -172,6 +182,8 @@ upstream upstream_test {
 	jdomain example.com port=;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port="
@@ -207,6 +219,8 @@ upstream upstream_test {
 	jdomain example.com max_ips=0;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=0"
@@ -218,6 +232,8 @@ upstream upstream_test {
 	jdomain example.com max_ips=-1;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=-1"
@@ -229,6 +245,8 @@ upstream upstream_test {
 	jdomain example.com max_ips=12345678901234567890;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=12345678901234567890"
@@ -240,6 +258,8 @@ upstream upstream_test {
 	jdomain example.com max_ips=example;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=example"
@@ -251,6 +271,8 @@ upstream upstream_test {
 	jdomain example.com max_ips=;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips="
@@ -314,6 +336,8 @@ upstream upstream_test {
 	jdomain example.com interval=0;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=0"
@@ -325,6 +349,8 @@ upstream upstream_test {
 	jdomain example.com interval=-1;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=-1"
@@ -336,6 +362,8 @@ upstream upstream_test {
 	jdomain example.com interval=12345678901234567890;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=12345678901234567890"
@@ -347,6 +375,8 @@ upstream upstream_test {
 	jdomain example.com interval=example;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=example"
@@ -358,6 +388,8 @@ upstream upstream_test {
 	jdomain example.com interval=;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval="

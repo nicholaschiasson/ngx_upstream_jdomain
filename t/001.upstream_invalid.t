@@ -98,6 +98,8 @@ upstream upstream_test {
 	jdomain example.com port=8000;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 host not found in upstream "example.com"
@@ -112,6 +114,8 @@ upstream upstream_test {
 	jdomain example.com port=8000;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 host not found in upstream "example.com"
