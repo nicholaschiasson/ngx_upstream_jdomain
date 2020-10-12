@@ -105,3 +105,18 @@ args = [
 	"bash",
 	"./scripts/test.sh"
 ]
+
+[tasks.leak]
+clear = true
+dependencies = ["conditional-build"]
+script_runner = "@shell"
+command = "docker"
+args = [
+	"run",
+	"--rm",
+	"-itv",
+	"${CARGO_MAKE_WORKING_DIRECTORY}:/github/workspace",
+	"act-github-actions-nginx-module-toolbox",
+	"bash",
+	"./scripts/leak.sh"
+]

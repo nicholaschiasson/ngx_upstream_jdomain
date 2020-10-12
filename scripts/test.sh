@@ -13,7 +13,6 @@ unbound-control -c /etc/unbound/unbound.conf start
 unbound-control verbosity 3
 
 export TEST_NGINX_USE_VALGRIND=1
-# export TEST_NGINX_CHECK_LEAK=1
 
 DYNAMIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/dynamic
 STATIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/static

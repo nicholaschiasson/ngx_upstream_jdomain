@@ -52,3 +52,4 @@ location = /status {
 7,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
 8,upstream_test,NGX_UPSTREAM_JDOMAIN_BUFFER,down,0,[0-9]+,http,0
 "]
+--- no_check_leak

@@ -95,9 +95,12 @@ upstream upstream_test {
 location = / {
 	proxy_pass http://upstream_test;
 }
+--- request
+GET /
 --- must_die
 --- error_log
 invalid number of arguments in "jdomain" directive
+--- no_check_leak
 === TEST 2: Valid port
 --- init
 `echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
@@ -127,9 +130,12 @@ upstream upstream_test {
 	jdomain example.com port=0;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=0"
+--- no_check_leak
 === TEST 2: Invalid port negative
 --- http_config
 resolver 127.0.0.88;
@@ -137,9 +143,12 @@ upstream upstream_test {
 	jdomain example.com port=-1;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=-1"
+--- no_check_leak
 === TEST 2: Invalid port too high
 --- http_config
 resolver 127.0.0.88;
@@ -147,9 +156,12 @@ upstream upstream_test {
 	jdomain example.com port=99999999;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=99999999"
+--- no_check_leak
 === TEST 2: Invalid port type
 --- http_config
 resolver 127.0.0.88;
@@ -157,9 +169,12 @@ upstream upstream_test {
 	jdomain example.com port=example;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port=example"
+--- no_check_leak
 === TEST 2: Invalid port empty
 --- http_config
 resolver 127.0.0.88;
@@ -167,9 +182,12 @@ upstream upstream_test {
 	jdomain example.com port=;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "port="
+--- no_check_leak
 === TEST 3: Valid max_ips
 --- init
 `echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
@@ -201,9 +219,12 @@ upstream upstream_test {
 	jdomain example.com max_ips=0;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=0"
+--- no_check_leak
 === TEST 3: Invalid max_ips negative
 --- http_config
 resolver 127.0.0.88;
@@ -211,9 +232,12 @@ upstream upstream_test {
 	jdomain example.com max_ips=-1;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=-1"
+--- no_check_leak
 === TEST 3: Invalid max_ips too high
 --- http_config
 resolver 127.0.0.88;
@@ -221,9 +245,12 @@ upstream upstream_test {
 	jdomain example.com max_ips=12345678901234567890;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=12345678901234567890"
+--- no_check_leak
 === TEST 3: Invalid max_ips type
 --- http_config
 resolver 127.0.0.88;
@@ -231,9 +258,12 @@ upstream upstream_test {
 	jdomain example.com max_ips=example;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips=example"
+--- no_check_leak
 === TEST 3: Invalid max_ips empty
 --- http_config
 resolver 127.0.0.88;
@@ -241,9 +271,12 @@ upstream upstream_test {
 	jdomain example.com max_ips=;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "max_ips="
+--- no_check_leak
 === TEST 4: Valid interval
 --- init
 `echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
@@ -303,9 +336,12 @@ upstream upstream_test {
 	jdomain example.com interval=0;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=0"
+--- no_check_leak
 === TEST 4: Invalid interval negative
 --- http_config
 resolver 127.0.0.88;
@@ -313,9 +349,12 @@ upstream upstream_test {
 	jdomain example.com interval=-1;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=-1"
+--- no_check_leak
 === TEST 4: Invalid interval too high
 --- http_config
 resolver 127.0.0.88;
@@ -323,9 +362,12 @@ upstream upstream_test {
 	jdomain example.com interval=12345678901234567890;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=12345678901234567890"
+--- no_check_leak
 === TEST 4: Invalid interval type
 --- http_config
 resolver 127.0.0.88;
@@ -333,9 +375,12 @@ upstream upstream_test {
 	jdomain example.com interval=example;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval=example"
+--- no_check_leak
 === TEST 4: Invalid interval empty
 --- http_config
 resolver 127.0.0.88;
@@ -343,6 +388,9 @@ upstream upstream_test {
 	jdomain example.com interval=;
 }
 --- config
+--- request
+GET /
 --- must_die
 --- error_log
 invalid parameter "interval="
+--- no_check_leak
