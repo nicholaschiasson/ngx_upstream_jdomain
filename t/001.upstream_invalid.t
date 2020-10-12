@@ -99,6 +99,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 host not found in upstream "example.com"
 === TEST 6: Invalid upstream with down backup
@@ -112,5 +113,6 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 host not found in upstream "example.com"

@@ -96,6 +96,7 @@ location = / {
 	proxy_pass http://upstream_test;
 }
 --- must_die
+--- no_check_leak
 --- error_log
 invalid number of arguments in "jdomain" directive
 === TEST 2: Valid port
@@ -128,6 +129,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "port=0"
 === TEST 2: Invalid port negative
@@ -138,6 +140,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "port=-1"
 === TEST 2: Invalid port too high
@@ -148,6 +151,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "port=99999999"
 === TEST 2: Invalid port type
@@ -158,6 +162,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "port=example"
 === TEST 2: Invalid port empty
@@ -168,6 +173,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "port="
 === TEST 3: Valid max_ips
@@ -202,6 +208,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "max_ips=0"
 === TEST 3: Invalid max_ips negative
@@ -212,6 +219,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "max_ips=-1"
 === TEST 3: Invalid max_ips too high
@@ -222,6 +230,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "max_ips=12345678901234567890"
 === TEST 3: Invalid max_ips type
@@ -232,6 +241,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "max_ips=example"
 === TEST 3: Invalid max_ips empty
@@ -242,6 +252,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "max_ips="
 === TEST 4: Valid interval
@@ -304,6 +315,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "interval=0"
 === TEST 4: Invalid interval negative
@@ -314,6 +326,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "interval=-1"
 === TEST 4: Invalid interval too high
@@ -324,6 +337,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "interval=12345678901234567890"
 === TEST 4: Invalid interval type
@@ -334,6 +348,7 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "interval=example"
 === TEST 4: Invalid interval empty
@@ -344,5 +359,6 @@ upstream upstream_test {
 }
 --- config
 --- must_die
+--- no_check_leak
 --- error_log
 invalid parameter "interval="
