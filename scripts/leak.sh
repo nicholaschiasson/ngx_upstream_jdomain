@@ -9,10 +9,11 @@ openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/nginx/test/key.pem -out /etc
 
 echo "nameserver 127.0.0.88" > /etc/resolv.conf
 
-unbound-control -c /etc/unbound.conf start
+unbound-control -c /etc/unbound/unbound.conf start
 unbound-control verbosity 3
 
 export TEST_NGINX_CHECK_LEAK=1
+export TEST_NGINX_CHECK_LEAK_COUNT=100
 
 DYNAMIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/dynamic
 STATIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/static

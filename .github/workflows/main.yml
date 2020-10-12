@@ -113,7 +113,7 @@ jobs:
       - name: LeakCheck
         uses: ./.github/actions/nginx-module-toolbox
         with:
-          entrypoint: bash ./scripts/leakcheck.sh
+          entrypoint: bash ./scripts/leak.sh
           imageBase: ${{ matrix.imageBase }}
           nginxVersion: ${{ matrix.nginxVersion }}
   tag:
