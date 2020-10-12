@@ -143,7 +143,7 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     name: Tag
-    needs: [analyse, build, lint, test]
+    needs: [analyse, build, leak, lint, test]
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' && (success() || failure()) }}
     steps:
       - name: Checkout
