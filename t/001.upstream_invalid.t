@@ -103,7 +103,6 @@ GET /
 --- must_die
 --- error_log
 host not found in upstream "example.com"
---- no_check_leak
 === TEST 6: Invalid upstream with down backup
 --- init
 `echo > /etc/unbound/unbound_local_zone.conf && unbound-control reload` or die $!;
@@ -119,4 +118,3 @@ GET /
 --- must_die
 --- error_log
 host not found in upstream "example.com"
---- no_check_leak
