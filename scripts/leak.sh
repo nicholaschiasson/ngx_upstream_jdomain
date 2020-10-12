@@ -21,5 +21,12 @@ STATIC_BIN_DIR=${GITHUB_WORKSPACE}/bin/static
 chmod 755 ${DYNAMIC_BIN_DIR}/nginx ${STATIC_BIN_DIR}/nginx
 
 # We run prove twice: once with statically linked module and once with dynamically linked module.
-PATH=${STATIC_BIN_DIR}:${PATH} prove -rv t/
-PATH=${DYNAMIC_BIN_DIR}:${PATH} TEST_NGINX_LOAD_MODULES=${DYNAMIC_BIN_DIR}/ngx_http_upstream_jdomain_module.so prove -rv t/
+ls t/*.t | while read f
+do
+	echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload
+	echo 'local-data: "example.ca 1 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf && unbound-control reload
+	PATH=${STATIC_BIN_DIR}:${PATH} prove -rv ${f}
+	echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf && unbound-control reload
+	echo 'local-data: "example.ca 1 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf && unbound-control reload
+	PATH=${DYNAMIC_BIN_DIR}:${PATH} TEST_NGINX_LOAD_MODULES=${DYNAMIC_BIN_DIR}/ngx_http_upstream_jdomain_module.so prove -rv ${f}
+done
