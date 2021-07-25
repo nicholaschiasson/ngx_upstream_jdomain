@@ -78,12 +78,12 @@ ngx_http_upstream_jdomain_init_instance_data(ngx_conf_t *cf, ngx_http_upstream_j
 static char *
 ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
-static ngx_command_t ngx_http_upstream_jdomain_commands[] = {
+static const ngx_command_t ngx_http_upstream_jdomain_commands[] = {
 	{ ngx_string("jdomain"), NGX_HTTP_UPS_CONF | NGX_CONF_1MORE, ngx_http_upstream_jdomain, NGX_HTTP_SRV_CONF_OFFSET, 0, NULL },
 	ngx_null_command
 };
 
-static ngx_http_module_t ngx_http_upstream_jdomain_module_ctx = {
+static const ngx_http_module_t ngx_http_upstream_jdomain_module_ctx = {
 	NULL,                                  /* preconfiguration */
 	NULL,                                  /* postconfiguration */
 	NULL,                                  /* create main configuration */
@@ -94,20 +94,22 @@ static ngx_http_module_t ngx_http_upstream_jdomain_module_ctx = {
 	NULL                                   /* merge location configuration */
 };
 
-ngx_module_t ngx_http_upstream_jdomain_module = { NGX_MODULE_V1,
-	                                                &ngx_http_upstream_jdomain_module_ctx, /* module context */
-	                                                ngx_http_upstream_jdomain_commands,    /* module directives */
-	                                                NGX_HTTP_MODULE,                       /* module type */
-	                                                NULL,                                  /* init master */
-	                                                NULL,                                  /* init module */
-	                                                NULL,                                  /* init process */
-	                                                NULL,                                  /* init thread */
-	                                                NULL,                                  /* exit thread */
-	                                                NULL,                                  /* exit process */
-	                                                NULL,                                  /* exit master */
-	                                                NGX_MODULE_V1_PADDING };
+const ngx_module_t ngx_http_upstream_jdomain_module = {
+	NGX_MODULE_V1,
+	(void *)&ngx_http_upstream_jdomain_module_ctx,       /* module context */
+	(ngx_command_t *)ngx_http_upstream_jdomain_commands, /* module directives */
+	NGX_HTTP_MODULE,                                     /* module type */
+	NULL,                                                /* init master */
+	NULL,                                                /* init module */
+	NULL,                                                /* init process */
+	NULL,                                                /* init thread */
+	NULL,                                                /* exit thread */
+	NULL,                                                /* exit process */
+	NULL,                                                /* exit master */
+	NGX_MODULE_V1_PADDING
+};
 
-static struct sockaddr_in NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN = { 0 };
+static const struct sockaddr_in NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN = { 0, AF_INET };
 static const ngx_addr_t NGX_JDOMAIN_INVALID_ADDR = { (struct sockaddr *)(&NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN),
 	                                                   sizeof(struct sockaddr_in),
 	                                                   ngx_string("NGX_UPSTREAM_JDOMAIN_BUFFER") };
@@ -459,10 +461,6 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	ngx_url_t u;
 	ngx_uint_t i;
 	char *rc;
-
-	NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN.sin_addr.s_addr = htonl(INADDR_ANY);
-	NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN.sin_family = AF_INET;
-	NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN.sin_port = htons(0);
 
 	errstr = ngx_pcalloc(cf->temp_pool, NGX_MAX_CONF_ERRSTR);
 	if (!errstr) {
