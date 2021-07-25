@@ -10,6 +10,7 @@
 #define NGX_JDOMAIN_DEFAULT_SERVER_MAX_FAILS 1
 #define NGX_JDOMAIN_DEFAULT_SERVER_WEIGHT 1
 #define NGX_JDOMAIN_DEFAULT_PORT 80
+#define NGX_JDOMAIN_DEFAULT_PORT_LEN 2
 
 #define NGX_JDOMAIN_ARG_STR_INTERVAL "interval="
 #define NGX_JDOMAIN_ARG_STR_MAX_IPS "max_ips="
@@ -446,6 +447,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	u_char *errstr;
 	u_char *name;
 	ngx_uint_t exists_alt_server;
+	size_t port_len;
 	ngx_http_upstream_server_t *server;
 	ngx_http_upstream_server_t *server_iter;
 	ngx_sockaddr_t *sockaddr;
@@ -511,6 +513,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	rc = NGX_CONF_OK;
 
 	value = cf->args->elts;
+	port_len = NGX_JDOMAIN_DEFAULT_PORT_LEN;
 
 	/* Parse arguments */
 	for (i = 2; i < cf->args->nelts; i++) {
@@ -542,6 +545,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 				goto invalid;
 			}
 			instance->conf.port = num;
+			port_len = value[i].len - arglen;
 			continue;
 		}
 
@@ -554,8 +558,11 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		goto invalid;
 	}
 
-	instance->conf.domain.data = value[1].data;
-	instance->conf.domain.len = value[1].len;
+	instance->conf.domain.len = value[1].len + port_len + 1;
+	instance->conf.domain.data = ngx_pcalloc(
+	  cf->pool,
+	  instance->conf.domain.len + 1); // + 1 here because valgrind is complaining that there's no \0 at the end otherwise
+	ngx_sprintf(instance->conf.domain.data, "%V:%d", &value[1], instance->conf.port);
 	server->name = instance->conf.domain;
 
 	/* Initialize state data */
