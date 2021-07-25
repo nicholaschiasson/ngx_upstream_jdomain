@@ -558,12 +558,13 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		goto invalid;
 	}
 
-	instance->conf.domain.len = value[1].len + port_len + 1;
-	instance->conf.domain.data = ngx_pcalloc(
-	  cf->pool,
-	  instance->conf.domain.len + 1); // + 1 here because valgrind is complaining that there's no \0 at the end otherwise
-	ngx_sprintf(instance->conf.domain.data, "%V:%d", &value[1], instance->conf.port);
-	server->name = instance->conf.domain;
+	instance->conf.domain.data = value[1].data;
+	instance->conf.domain.len = value[1].len;
+	server->name.len = value[1].len + port_len + 1;
+	server->name.data =
+	  ngx_pcalloc(cf->pool,
+	              server->name.len + 1); // + 1 here because valgrind is complaining that there's no \0 at the end otherwise
+	ngx_sprintf(server->name.data, "%V:%d", &value[1], instance->conf.port);
 
 	/* Initialize state data */
 	if (ngx_http_upstream_jdomain_init_instance_data(cf, instance) != NGX_OK) {
