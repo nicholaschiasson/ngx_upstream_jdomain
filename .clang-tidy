@@ -1,6 +1,6 @@
 ---
 # All checks except signed bitwise warnings and unused parameter warnings
-Checks: '*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-init-variables,-hicpp-signed-bitwise,-misc-unused-parameters'
+Checks: '*,-altera-struct-pack-align,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-init-variables,-hicpp-signed-bitwise,-misc-unused-parameters,-performance-no-int-to-ptr,-readability-function-cognitive-complexity'
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'Corresponding Header'
 AnalyzeTemporaryDtors: false
