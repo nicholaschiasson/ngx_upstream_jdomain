@@ -15,10 +15,8 @@ jobs:
           - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
-          - 1.20.1
+          - 1.20.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -38,10 +36,8 @@ jobs:
           - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
-          - 1.20.1
+          - 1.20.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -61,10 +57,8 @@ jobs:
           - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
-          - 1.20.1
+          - 1.20.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -91,10 +85,8 @@ jobs:
           - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
-          - 1.20.1
+          - 1.20.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -121,10 +113,8 @@ jobs:
           - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
-          - 1.20.1
+          - 1.20.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
