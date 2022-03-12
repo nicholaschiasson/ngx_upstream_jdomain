@@ -84,13 +84,15 @@ location = / {
 [502, 502, 502, 502, 502, 502, 502, 502]
 === TEST 5: Round robin
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 300 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 300 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000;
+	# NOTE: We add a high interval so the DNS doesn't resolve during the test and possibly reorder the peers.
+	# TODO: Remove the interval after adding IP sorting in jdomain module.
+	jdomain example.com port=8000 interval=300;
 }
 server {
 	listen 127.0.0.2:8000;
@@ -107,18 +109,20 @@ location = / {
 --- request eval
 ["GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /", "GET /"]
 --- error_code eval
-[201, 202, 201, 202, 201, 202, 201, 202]
+[202, 201, 202, 201, 202, 201, 202, 201]
 --- response_body eval
-["Pass 1", "Pass 2", "Pass 1", "Pass 2", "Pass 1", "Pass 2", "Pass 1", "Pass 2"]
+["Pass 2", "Pass 1", "Pass 2", "Pass 1", "Pass 2", "Pass 1", "Pass 2", "Pass 1"]
 === TEST 6: Round robin SSL
 --- init
-`echo 'local-data: "example.com 1 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
-echo 'local-data: "example.com 1 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf &&
+`echo 'local-data: "example.com 300 A 127.0.0.2"' > /etc/unbound/unbound_local_zone.conf &&
+echo 'local-data: "example.com 300 A 127.0.0.3"' >> /etc/unbound/unbound_local_zone.conf &&
 unbound-control reload` or die $!;
 --- http_config
 resolver 127.0.0.88;
 upstream upstream_test {
-	jdomain example.com port=8000;
+	# NOTE: We add a high interval so the DNS doesn't resolve during the test and possibly reorder the peers
+	# TODO: Remove the interval after adding IP sorting in jdomain module.
+	jdomain example.com port=8000 interval=300;
 }
 server {
 	listen 127.0.0.2:8000 ssl;
