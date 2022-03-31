@@ -94,6 +94,7 @@ Attributes:
 	port:       Backend's listening port.                                      (Default: 80)
 	max_ips:    IP buffer size. Maximum number of resolved IPs to cache.       (Default: 4)
 	interval:   How many seconds to resolve domain name.                       (Default: 1)
+	ipver:      Only addresses of family IPv4 or IPv6 will be used if defined  (Default: 0)
 	strict:     Require the DNS resolution to succeed and return addresses,
 	            otherwise marks the underlying server and peers as down and
 	            forces use of other servers in the upstream block if there
