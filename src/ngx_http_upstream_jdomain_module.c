@@ -107,7 +107,7 @@ ngx_module_t ngx_http_upstream_jdomain_module = { NGX_MODULE_V1,
 	                                                NULL,                                  /* exit master */
 	                                                NGX_MODULE_V1_PADDING };
 
-static struct sockaddr_in NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN = { };
+static struct sockaddr_in NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN = {};
 static const ngx_addr_t NGX_JDOMAIN_INVALID_ADDR = { (struct sockaddr *)(&NGX_JDOMAIN_INVALID_ADDR_SOCKADDR_IN),
 	                                                   sizeof(struct sockaddr_in),
 	                                                   ngx_string("NGX_UPSTREAM_JDOMAIN_BUFFER") };
@@ -156,7 +156,12 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 		}
 
 		if (j != instance[i].conf.max_ips) {
-			ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "ngx_http_upstream_jdomain_module: num peerps (%d) does not match max_ips (%d)", j, instance[i].conf.max_ips);
+			ngx_conf_log_error(NGX_LOG_EMERG,
+			                   cf,
+			                   0,
+			                   "ngx_http_upstream_jdomain_module: num peerps (%d) does not match max_ips (%d)",
+			                   j,
+			                   instance[i].conf.max_ips);
 			return NGX_ERROR;
 		}
 
