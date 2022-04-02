@@ -320,7 +320,7 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 		addr[f].socklen = peerp[i]->socklen = ctx->addrs[i].socklen;
 		ngx_memcpy(addr[f].sockaddr, ctx->addrs[i].sockaddr, addr[f].socklen);
 		ngx_inet_set_port(addr[f].sockaddr, instance->conf.port);
-		addr[f].name.data = &name[i * NGX_SOCKADDR_STRLEN];
+		addr[f].name.data = peerp[f]->name.data = &name[i * NGX_SOCKADDR_STRLEN];
 		addr[f].name.len = peerp[f]->name.len =
 		  ngx_sock_ntop(addr[f].sockaddr, addr[f].socklen, addr[f].name.data, NGX_SOCKADDR_STRLEN, 1);
 		peerp[f]->down = 0;
