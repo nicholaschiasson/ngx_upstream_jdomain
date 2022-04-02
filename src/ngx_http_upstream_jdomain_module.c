@@ -316,11 +316,11 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 		     (instance->conf.ipver == NGX_JDOMAIN_IPV6 && ctx->addrs[i].sockaddr->sa_family != AF_INET6))) {
 			continue;
 		}
-		addr[f].sockaddr = &sockaddr[i].sockaddr;
-		addr[f].socklen = peerp[i]->socklen = ctx->addrs[i].socklen;
+		addr[f].sockaddr = &sockaddr[f].sockaddr;
+		addr[f].socklen = peerp[f]->socklen = ctx->addrs[i].socklen;
 		ngx_memcpy(addr[f].sockaddr, ctx->addrs[i].sockaddr, addr[f].socklen);
 		ngx_inet_set_port(addr[f].sockaddr, instance->conf.port);
-		addr[f].name.data = peerp[f]->name.data = &name[i * NGX_SOCKADDR_STRLEN];
+		addr[f].name.data = peerp[f]->name.data = &name[f * NGX_SOCKADDR_STRLEN];
 		addr[f].name.len = peerp[f]->name.len =
 		  ngx_sock_ntop(addr[f].sockaddr, addr[f].socklen, addr[f].name.data, NGX_SOCKADDR_STRLEN, 1);
 		peerp[f]->down = 0;
@@ -639,10 +639,10 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		     (instance->conf.ipver == NGX_JDOMAIN_IPV6 && u.addrs[i].sockaddr->sa_family != AF_INET6))) {
 			continue;
 		}
-		addr[f].name.data = &name[i * NGX_SOCKADDR_STRLEN];
+		addr[f].name.data = &name[f * NGX_SOCKADDR_STRLEN];
 		addr[f].name.len = u.addrs[i].name.len;
 		ngx_memcpy(addr[f].name.data, u.addrs[i].name.data, addr[f].name.len);
-		addr[f].sockaddr = &sockaddr[i].sockaddr;
+		addr[f].sockaddr = &sockaddr[f].sockaddr;
 		addr[f].socklen = u.addrs[i].socklen;
 		ngx_memcpy(addr[f].sockaddr, u.addrs[i].sockaddr, addr[f].socklen);
 		f++;
