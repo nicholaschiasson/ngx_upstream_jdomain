@@ -148,19 +148,19 @@ jobs:
           fi
       - name: Bump major version and push tag
         if: ${{ steps.check-semver.outputs.semver == 'major' }}
-        uses: anothrNick/github-tag-action@1.17.2
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           DEFAULT_BUMP: major
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump minor version and push tag
         if: ${{ steps.check-semver.outputs.semver == 'minor' }}
-        uses: anothrNick/github-tag-action@1.17.2
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           DEFAULT_BUMP: minor
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump patch version and push tag
         if: ${{ steps.check-semver.outputs.semver == 'patch' }}
-        uses: anothrNick/github-tag-action@1.17.2
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           DEFAULT_BUMP: patch
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
