@@ -1,7 +1,5 @@
 on:
   push:
-    branches:
-      - master
   pull_request:
 
 jobs:
@@ -12,7 +10,6 @@ jobs:
       matrix:
         imageBase:
           - alpine-3
-          - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
           - 1.18.0
@@ -26,6 +23,7 @@ jobs:
           entrypoint: bash ./scripts/analyse.sh
           imageBase: ${{ matrix.imageBase }}
           nginxVersion: ${{ matrix.nginxVersion }}
+
   lint:
     runs-on: ubuntu-latest
     name: Lint
@@ -33,7 +31,6 @@ jobs:
       matrix:
         imageBase:
           - alpine-3
-          - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
           - 1.18.0
@@ -47,6 +44,7 @@ jobs:
           entrypoint: bash ./scripts/lint.sh
           imageBase: ${{ matrix.imageBase }}
           nginxVersion: ${{ matrix.nginxVersion }}
+
   build:
     runs-on: ubuntu-latest
     name: Build
@@ -54,7 +52,6 @@ jobs:
       matrix:
         imageBase:
           - alpine-3
-          - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
           - 1.18.0
@@ -74,6 +71,7 @@ jobs:
         with:
           name: nginx-${{ matrix.imageBase }}-${{ matrix.nginxVersion }}
           path: bin
+
   test:
     runs-on: ubuntu-latest
     name: Test
@@ -82,7 +80,6 @@ jobs:
       matrix:
         imageBase:
           - alpine-3
-          - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
           - 1.18.0
@@ -102,6 +99,7 @@ jobs:
           entrypoint: bash ./scripts/test.sh
           imageBase: ${{ matrix.imageBase }}
           nginxVersion: ${{ matrix.nginxVersion }}
+
   leak:
     runs-on: ubuntu-latest
     name: Leak Check
@@ -110,7 +108,6 @@ jobs:
       matrix:
         imageBase:
           - alpine-3
-          - amazonlinux-2
           - ubuntu-20.04
         nginxVersion:
           - 1.18.0
@@ -130,6 +127,7 @@ jobs:
           entrypoint: bash ./scripts/leak.sh
           imageBase: ${{ matrix.imageBase }}
           nginxVersion: ${{ matrix.nginxVersion }}
+
   tag:
     runs-on: ubuntu-latest
     name: Tag
