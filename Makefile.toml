@@ -8,7 +8,7 @@ args = [
 	"-t",
 	"act-github-actions-nginx-module-toolbox:latest",
 	"--build-arg",
-	"IMAGE_BASE=amazonlinux-2",
+	"IMAGE_BASE=alpine-3",
 	"--build-arg",
 	"NGINX_VERSION=1.16.1",
 	"${CARGO_MAKE_WORKING_DIRECTORY}/.github/actions/nginx-module-toolbox"
