@@ -244,9 +244,9 @@ ngx_http_upstream_init_jdomain_peer(ngx_http_request_t *r, ngx_http_upstream_srv
 			  NGX_LOG_ALERT, r->connection->log, 0, "ngx_http_upstream_jdomain_module: ngx_resolve_name \"%V\" fail", &ctx->name);
 			continue;
 		}
-        if (ctx->state == NGX_AGAIN) {
-            instance[i].state.resolve.status = NGX_JDOMAIN_STATUS_WAIT;
-        }
+		if (ctx->state == NGX_AGAIN) {
+			instance[i].state.resolve.status = NGX_JDOMAIN_STATUS_WAIT;
+		}
 	}
 
 end:
