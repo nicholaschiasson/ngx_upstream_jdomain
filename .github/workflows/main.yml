@@ -9,13 +9,12 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          - alpine-3
-          - centos-8
-          - ubuntu-20.04
+          - alpine-3.12.0
+          - ubuntu-focal-20200925
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
+          - 1.20.2
+          - 1.22.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -32,13 +31,12 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          - alpine-3
-          - centos-8
-          - ubuntu-20.04
+          - alpine-3.12.0
+          - ubuntu-focal-20200925
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
+          - 1.20.2
+          - 1.22.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -55,13 +53,12 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          - alpine-3
-          - centos-8
-          - ubuntu-20.04
+          - alpine-3.12.0
+          - ubuntu-focal-20200925
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
+          - 1.20.2
+          - 1.22.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -85,13 +82,12 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          - alpine-3
-          - centos-8
-          - ubuntu-20.04
+          - alpine-3.12.0
+          - ubuntu-focal-20200925
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
+          - 1.20.2
+          - 1.22.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -115,13 +111,12 @@ jobs:
     strategy:
       matrix:
         imageBase:
-          - alpine-3
-          - centos-8
-          - ubuntu-20.04
+          - alpine-3.12.0
+          - ubuntu-focal-20200925
         nginxVersion:
-          - 1.14.2
-          - 1.16.1
           - 1.18.0
+          - 1.20.2
+          - 1.22.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -158,19 +153,19 @@ jobs:
           fi
       - name: Bump major version and push tag
         if: ${{ steps.check-semver.outputs.semver == 'major' }}
-        uses: anothrNick/github-tag-action@1.17.2
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           DEFAULT_BUMP: major
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump minor version and push tag
         if: ${{ steps.check-semver.outputs.semver == 'minor' }}
-        uses: anothrNick/github-tag-action@1.17.2
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           DEFAULT_BUMP: minor
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump patch version and push tag
         if: ${{ steps.check-semver.outputs.semver == 'patch' }}
-        uses: anothrNick/github-tag-action@1.17.2
+        uses: anothrNick/github-tag-action@1.39.0
         env:
           DEFAULT_BUMP: patch
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
