@@ -11,10 +11,13 @@
 #define NGX_JDOMAIN_DEFAULT_SERVER_WEIGHT 1
 #define NGX_JDOMAIN_DEFAULT_PORT 80
 #define NGX_JDOMAIN_DEFAULT_PORT_LEN 2
-#define NGX_JDOMAIN_DEFAULT_IPVER 0
 
-#define NGX_JDOMAIN_IPV6 6
 #define NGX_JDOMAIN_IPV4 4
+#define NGX_JDOMAIN_IPV6 6
+
+#define NGX_JDOMAIN_FAMILY_DEFAULT 0
+#define NGX_JDOMAIN_FAMILY_IPV4 AF_INET
+#define NGX_JDOMAIN_FAMILY_IPV6 AF_INET6
 
 #define NGX_JDOMAIN_ARG_STR_INTERVAL "interval="
 #define NGX_JDOMAIN_ARG_STR_MAX_IPS "max_ips="
@@ -31,7 +34,7 @@ typedef struct
 		ngx_uint_t max_ips;
 		in_port_t port;
 		ngx_uint_t strict;
-		char ipver;
+		short addr_family; /* ipver= */
 	} conf;
 	struct
 	{
@@ -313,9 +316,8 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 	/* Copy the resolved sockaddrs and address names (IP:PORT) into our state data buffers, marking associated peers up */
 	f = 0;
 	for (i = 0; i < ctx->naddrs; i++) {
-		if (instance->conf.ipver != 0 &&
-		    ((instance->conf.ipver == NGX_JDOMAIN_IPV4 && ctx->addrs[i].sockaddr->sa_family != AF_INET) ||
-		     (instance->conf.ipver == NGX_JDOMAIN_IPV6 && ctx->addrs[i].sockaddr->sa_family != AF_INET6))) {
+		if (instance->conf.addr_family != NGX_JDOMAIN_FAMILY_DEFAULT &&
+		    instance->conf.addr_family != ctx->addrs[i].sockaddr->sa_family) {
 			continue;
 		}
 		addr[f].sockaddr = &sockaddr[f].sockaddr;
@@ -396,7 +398,7 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdom
 	instance->conf.interval = 1;
 	instance->conf.max_ips = 4;
 	instance->conf.port = NGX_JDOMAIN_DEFAULT_PORT;
-	instance->conf.ipver = NGX_JDOMAIN_DEFAULT_IPVER;
+	instance->conf.addr_family = NGX_JDOMAIN_FAMILY_DEFAULT;
 
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
 
@@ -578,10 +580,20 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_IPVER);
 		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_IPVER, arglen) == 0) {
 			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
-			if (num != NGX_JDOMAIN_IPV4 && num != NGX_JDOMAIN_IPV6 && num != 0) {
-				goto invalid;
+			switch (num) {
+				case NGX_JDOMAIN_IPV4:
+					instance->conf.addr_family = NGX_JDOMAIN_FAMILY_IPV4;
+					break;
+				case NGX_JDOMAIN_IPV6:
+					instance->conf.addr_family = NGX_JDOMAIN_FAMILY_IPV6;
+					break;
+				case 0:
+					// valid as default
+					break;
+				default:
+					goto invalid;
 			}
-			instance->conf.ipver = num;
+
 			continue;
 		}
 
@@ -636,9 +648,8 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	/* Copy the resolved sockaddrs and address names (IP:PORT) into our state data buffers */
 	f = 0;
 	for (i = 0; i < u.naddrs; i++) {
-		if (instance->conf.ipver != 0 &&
-		    ((instance->conf.ipver == NGX_JDOMAIN_IPV4 && u.addrs[i].sockaddr->sa_family != AF_INET) ||
-		     (instance->conf.ipver == NGX_JDOMAIN_IPV6 && u.addrs[i].sockaddr->sa_family != AF_INET6))) {
+		if (instance->conf.addr_family != NGX_JDOMAIN_FAMILY_DEFAULT &&
+		    instance->conf.addr_family != u.addrs[i].sockaddr->sa_family) {
 			continue;
 		}
 		addr[f].name.data = &name[f * NGX_SOCKADDR_STRLEN];
