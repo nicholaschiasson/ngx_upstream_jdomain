@@ -307,6 +307,18 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 		}
 	}
 
+	ngx_log_error(
+	  NGX_LOG_DEBUG,
+	  ctx->resolver->log,
+	  0,
+	  "ngx_http_upstream_jdomain_module: resolver state: \"%V\" (%i: %s), addresses: %i, isDown: %i, exists_alt_server: %i",
+	  &ctx->name,
+	  ctx->state,
+	  ngx_resolver_strerror(ctx->state),
+	  ctx->naddrs,
+	  instance->state.data.server->down,
+	  exists_alt_server);
+
 	addr = instance->state.data.addrs->elts;
 	name = instance->state.data.names->elts;
 	peerp = instance->state.data.peerps->elts;
@@ -349,6 +361,7 @@ ngx_http_upstream_jdomain_resolve_handler(ngx_resolver_ctx_t *ctx)
 
 end:
 	/* Release the resolver context and mark the completion in the instance state */
+	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, ctx->resolver->log, 0, "ngx_http_upstream_jdomain_module: resolver end");
 	ngx_resolve_name_done(ctx);
 	instance->state.resolve.access = ngx_time();
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
