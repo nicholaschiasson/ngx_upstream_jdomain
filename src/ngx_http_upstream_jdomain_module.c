@@ -23,6 +23,7 @@
 #define NGX_JDOMAIN_ARG_STR_MAX_IPS "max_ips="
 #define NGX_JDOMAIN_ARG_STR_PORT "port="
 #define NGX_JDOMAIN_ARG_STR_IPVER "ipver="
+#define NGX_JDOMAIN_ARG_STR_MAX_CONNS "max_conns="
 #define NGX_JDOMAIN_ARG_STR_STRICT "strict"
 
 typedef struct
@@ -600,6 +601,14 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_STRICT);
 		if (value[i].len == arglen && ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_STRICT, arglen) == 0) {
 			instance->conf.strict = 1;
+			continue;
+		}
+
+		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_MAX_CONNS);
+		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_MAX_CONNS, arglen) == 0) {
+			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
+			server->max_conns = num;
+
 			continue;
 		}
 
