@@ -20,6 +20,7 @@
 #define NGX_JDOMAIN_FAMILY_IPV6 AF_INET6
 
 #define NGX_JDOMAIN_ARG_STR_INTERVAL "interval="
+#define NGX_JDOMAIN_ARG_STR_IGNORE_FAILURE "ignore_failure="
 #define NGX_JDOMAIN_ARG_STR_MAX_IPS "max_ips="
 #define NGX_JDOMAIN_ARG_STR_PORT "port="
 #define NGX_JDOMAIN_ARG_STR_IPVER "ipver="
@@ -35,7 +36,8 @@ typedef struct
 		ngx_uint_t max_ips;
 		in_port_t port;
 		ngx_uint_t strict;
-		short addr_family; /* ipver= */
+		short addr_family;    /* ipver= */
+		short ignore_failure; /* ignore_failure= */
 	} conf;
 	struct
 	{
@@ -400,6 +402,7 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdom
 	instance->conf.max_ips = 4;
 	instance->conf.port = NGX_JDOMAIN_DEFAULT_PORT;
 	instance->conf.addr_family = NGX_JDOMAIN_FAMILY_DEFAULT;
+	instance->conf.ignore_failure = 0;
 
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
 
@@ -556,6 +559,17 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			}
 			continue;
 		}
+		
+		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_IGNORE_FAILURE);
+		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_IGNORE_FAILURE, arglen) == 0) {
+			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
+			if (num < 0 || num > 1) {
+				goto invalid;
+			}
+
+			instance->conf.ignore_failure = num;
+			continue;
+		}
 
 		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_MAX_IPS);
 		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_MAX_IPS, arglen) == 0) {
@@ -645,7 +659,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	/* Initial domain name resolution */
 	if (ngx_parse_url(cf->temp_pool, &u) != NGX_OK) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
-		if (!exists_alt_server) {
+		if (!exists_alt_server && !instance->conf.ignore_failure) {
 			goto failure;
 		}
 		ngx_conf_log_error(NGX_LOG_WARN, cf, 0, (const char *)errstr);
