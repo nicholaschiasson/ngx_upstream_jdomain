@@ -568,7 +568,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		}
 
 		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_PORT);
-		if (ngx_strncmp(value[i].data, "port=", arglen) == 0) {
+		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_PORT, arglen) == 0) {
 			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
 			if (num < 1 || num != (in_port_t)num) {
 				goto invalid;
