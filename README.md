@@ -94,6 +94,8 @@ Attributes:
 	port:           Backend's listening port.                                      (Default: 80)
 	max_ips:        IP buffer size. Maximum number of resolved IPs to cache.       (Default: 4)
 	interval:       How many seconds to resolve domain name.                       (Default: 1)
+	max_fails:      How many failures to allow before disabling
+	                This is the same as round robin max_fails                      (Default: 1)
 	ipver:          Only addresses of family IPv4 or IPv6 will be used if defined  (Default: 0)
 	ignore_failure: Allow nginx to start even if resolution fails (1 to enable)    (Default: 0)
 	strict:         Require the DNS resolution to succeed and return addresses,
