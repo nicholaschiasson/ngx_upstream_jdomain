@@ -20,10 +20,12 @@
 #define NGX_JDOMAIN_FAMILY_IPV6 AF_INET6
 
 #define NGX_JDOMAIN_ARG_STR_INTERVAL "interval="
+#define NGX_JDOMAIN_ARG_STR_IGNORE_FAILURE "ignore_failure="
 #define NGX_JDOMAIN_ARG_STR_MAX_IPS "max_ips="
 #define NGX_JDOMAIN_ARG_STR_PORT "port="
 #define NGX_JDOMAIN_ARG_STR_IPVER "ipver="
 #define NGX_JDOMAIN_ARG_STR_MAX_CONNS "max_conns="
+#define NGX_JDOMAIN_ARG_STR_MAX_FAILS "max_fails="
 #define NGX_JDOMAIN_ARG_STR_STRICT "strict"
 
 typedef struct
@@ -35,7 +37,8 @@ typedef struct
 		ngx_uint_t max_ips;
 		in_port_t port;
 		ngx_uint_t strict;
-		short addr_family; /* ipver= */
+		short addr_family;    /* ipver= */
+		short ignore_failure; /* ignore_failure= */
 	} conf;
 	struct
 	{
@@ -135,8 +138,8 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 	ngx_http_upstream_rr_peer_t *peer;
 	ngx_http_upstream_rr_peer_t **peerp;
 	ngx_http_upstream_rr_peers_t *peers;
-	ngx_uint_t i;
-	ngx_uint_t j;
+	ngx_uint_t i, k;
+	ngx_int_t j;
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "ngx_http_upstream_jdomain_module: init jdomain");
 
@@ -158,14 +161,31 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 		peerp = instance[i].state.data.peerps->elts;
 		j = 0;
 
-		for (peer = peers->peer; peer; peer = peer->next) {
-			if (instance[i].state.data.server->name.len == peer->server.len &&
-			    ngx_strncmp(instance[i].state.data.server->name.data, peer->server.data, peer->server.len) == 0) {
-				peerp[j++] = peer;
+		/* Find the starting position for our peerps */
+		for (k = 0; k < i; k++) {
+			if (instance[i].state.data.server->name.len == instance[k].state.data.server->name.len &&
+			    ngx_strncmp(instance[i].state.data.server->name.data, instance[k].state.data.server->name.data, peer->server.len) == 0) {
+				j -= instance[k].conf.max_ips;
 			}
 		}
 
-		if (j != instance[i].conf.max_ips) {
+		for (peer = peers->peer; peer; peer = peer->next) {
+			if (instance[i].state.data.server->name.len == peer->server.len &&
+			    ngx_strncmp(instance[i].state.data.server->name.data, peer->server.data, peer->server.len) == 0) {
+				if (j < 0) {
+					j++;
+					continue;
+				}
+
+				peerp[j++] = peer;
+
+				if ((ngx_uint_t)j == instance[i].conf.max_ips) {
+					break;
+				}
+			}
+		}
+
+		if (j != (ngx_int_t)instance[i].conf.max_ips) {
 			ngx_conf_log_error(NGX_LOG_EMERG,
 			                   cf,
 			                   0,
@@ -400,6 +420,7 @@ ngx_http_upstream_jdomain_create_instance(ngx_conf_t *cf, ngx_http_upstream_jdom
 	instance->conf.max_ips = 4;
 	instance->conf.port = NGX_JDOMAIN_DEFAULT_PORT;
 	instance->conf.addr_family = NGX_JDOMAIN_FAMILY_DEFAULT;
+	instance->conf.ignore_failure = 0;
 
 	instance->state.resolve.status = NGX_JDOMAIN_STATUS_DONE;
 
@@ -556,6 +577,17 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			}
 			continue;
 		}
+		
+		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_IGNORE_FAILURE);
+		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_IGNORE_FAILURE, arglen) == 0) {
+			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
+			if (num < 0 || num > 1) {
+				goto invalid;
+			}
+
+			instance->conf.ignore_failure = num;
+			continue;
+		}
 
 		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_MAX_IPS);
 		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_MAX_IPS, arglen) == 0) {
@@ -568,7 +600,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 		}
 
 		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_PORT);
-		if (ngx_strncmp(value[i].data, "port=", arglen) == 0) {
+		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_PORT, arglen) == 0) {
 			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
 			if (num < 1 || num != (in_port_t)num) {
 				goto invalid;
@@ -612,6 +644,14 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 			continue;
 		}
 
+		arglen = ngx_strlen(NGX_JDOMAIN_ARG_STR_MAX_FAILS);
+		if (ngx_strncmp(value[i].data, NGX_JDOMAIN_ARG_STR_MAX_FAILS, arglen) == 0) {
+			num = ngx_atoi(value[i].data + arglen, value[i].len - arglen);
+			server->max_fails = num;
+
+			continue;
+		}
+
 		goto invalid;
 	}
 
@@ -645,7 +685,7 @@ ngx_http_upstream_jdomain(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 	/* Initial domain name resolution */
 	if (ngx_parse_url(cf->temp_pool, &u) != NGX_OK) {
 		ngx_sprintf(errstr, "ngx_http_upstream_jdomain_module: %s in upstream \"%V\"", u.err ? u.err : "error", &u.url);
-		if (!exists_alt_server) {
+		if (!exists_alt_server && !instance->conf.ignore_failure) {
 			goto failure;
 		}
 		ngx_conf_log_error(NGX_LOG_WARN, cf, 0, (const char *)errstr);
