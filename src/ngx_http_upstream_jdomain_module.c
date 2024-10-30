@@ -138,8 +138,8 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 	ngx_http_upstream_rr_peer_t *peer;
 	ngx_http_upstream_rr_peer_t **peerp;
 	ngx_http_upstream_rr_peers_t *peers;
-	ngx_uint_t i;
-	ngx_uint_t j;
+	ngx_uint_t i, k;
+	ngx_int_t j;
 
 	ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "ngx_http_upstream_jdomain_module: init jdomain");
 
@@ -161,14 +161,31 @@ ngx_http_upstream_init_jdomain(ngx_conf_t *cf, ngx_http_upstream_srv_conf_t *us)
 		peerp = instance[i].state.data.peerps->elts;
 		j = 0;
 
-		for (peer = peers->peer; peer; peer = peer->next) {
-			if (instance[i].state.data.server->name.len == peer->server.len &&
-			    ngx_strncmp(instance[i].state.data.server->name.data, peer->server.data, peer->server.len) == 0) {
-				peerp[j++] = peer;
+		/* Find the starting position for our peerps */
+		for (k = 0; k < i; k++) {
+			if (instance[i].state.data.server->name.len == instance[k].state.data.server->name.len &&
+			    ngx_strncmp(instance[i].state.data.server->name.data, instance[k].state.data.server->name.data, peer->server.len) == 0) {
+				j -= instance[k].conf.max_ips;
 			}
 		}
 
-		if (j != instance[i].conf.max_ips) {
+		for (peer = peers->peer; peer; peer = peer->next) {
+			if (instance[i].state.data.server->name.len == peer->server.len &&
+			    ngx_strncmp(instance[i].state.data.server->name.data, peer->server.data, peer->server.len) == 0) {
+				if (j < 0) {
+					j++;
+					continue;
+				}
+
+				peerp[j++] = peer;
+
+				if ((ngx_uint_t)j == instance[i].conf.max_ips) {
+					break;
+				}
+			}
+		}
+
+		if (j != (ngx_int_t)instance[i].conf.max_ips) {
 			ngx_conf_log_error(NGX_LOG_EMERG,
 			                   cf,
 			                   0,
