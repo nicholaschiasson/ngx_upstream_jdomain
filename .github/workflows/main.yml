@@ -17,7 +17,7 @@ jobs:
           - 1.22.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
       - name: Analyse
         uses: ./.github/actions/nginx-module-toolbox
         with:
@@ -39,7 +39,7 @@ jobs:
           - 1.22.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
       - name: Lint
         uses: ./.github/actions/nginx-module-toolbox
         with:
@@ -61,7 +61,7 @@ jobs:
           - 1.22.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
       - name: Build
         uses: ./.github/actions/nginx-module-toolbox
         with:
@@ -70,7 +70,7 @@ jobs:
           nginxVersion: ${{ matrix.nginxVersion }}
       - name: Upload Artifacts
         if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: nginx-${{ matrix.imageBase }}-${{ matrix.nginxVersion }}
           path: bin
@@ -90,10 +90,10 @@ jobs:
           - 1.22.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
       - name: Download Artifacts
         if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.8
         with:
           name: nginx-${{ matrix.imageBase }}-${{ matrix.nginxVersion }}
           path: bin
@@ -119,10 +119,10 @@ jobs:
           - 1.22.0
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
       - name: Download Artifacts
         if: ${{ env.GITHUB_ACTIONS_ENVIRONMENT != 'local' }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.8
         with:
           name: nginx-${{ matrix.imageBase }}-${{ matrix.nginxVersion }}
           path: bin
@@ -140,7 +140,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' && (success() || failure()) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
       - name: Check semver bump
         id: check-semver
         run: |
